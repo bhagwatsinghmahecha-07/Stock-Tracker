@@ -182,17 +182,37 @@ button.stat:hover{transform:none;box-shadow:none;border-color:var(--pri)}
   #nav{grid-row:2;grid-column:1;position:sticky;top:var(--hh,56px);height:calc(100vh - var(--hh,56px));flex-direction:column;flex-wrap:nowrap;gap:2px;overflow-x:hidden;overflow-y:auto;padding:14px 10px;background:var(--card);border-right:1px solid var(--bd);border-bottom:0}
   #page{grid-row:2;grid-column:2;width:100%;max-width:1120px;margin:0;padding:8px 28px 60px}
 }
+.menu,.pt{display:none}
 @media(max-width:959px){
-  #nav{position:fixed;left:0;right:0;top:auto;bottom:0;z-index:40;flex-direction:row;flex-wrap:nowrap;gap:2px;overflow-x:auto;overflow-y:hidden;padding:6px 6px calc(6px + env(safe-area-inset-bottom));background:var(--card);border-top:1px solid var(--bd);border-bottom:0}
-  #nav .ngrp{display:none}
-  #nav button{flex:0 0 auto;flex-direction:column;justify-content:center;width:auto;min-width:68px;min-height:54px;padding:6px 8px;gap:3px;font-size:.68rem;text-align:center;white-space:nowrap}
-  #nav button.on{box-shadow:inset 0 3px 0 var(--acc)}
-  #nav .badge{position:absolute;margin:0;transform:translate(14px,-18px)}
-  #nav button{position:relative}
-  #page{padding:6px 14px 110px}
-  .card{padding:16px}
-  #toast{bottom:84px}
+  header{position:sticky;top:0;z-index:50;padding:8px 10px;gap:8px}
+  .brand,#btnLogout{display:none}
+  .menu{display:inline-flex;align-items:center;justify-content:center;flex:0 0 42px;width:42px;height:42px;border-radius:10px;border:1px solid rgba(255,255,255,.3);background:transparent;color:#fff}
+  .pt{display:block;flex:1;min-width:0}
+  .pt b{display:block;color:#fff;font-size:1.05rem;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .pt span{display:block;color:#aab7d6;font-size:.76rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .back{width:42px;height:42px;padding:0;margin:0;font-size:0;display:inline-flex;align-items:center;justify-content:center}
+  .back[hidden]{display:none}
+  .back::before{content:"←";font-size:1.25rem;line-height:1}
+  #nav{position:fixed;left:0;right:0;top:var(--hh,58px);bottom:auto;max-height:calc(100vh - var(--hh,58px));overflow-y:auto;z-index:40;display:none;grid-template-columns:1fr 1fr;gap:8px;padding:12px 12px 20px;background:var(--card);border-bottom:1px solid var(--bd);box-shadow:0 14px 30px rgba(0,0,0,.2)}
+  body.menu-open #nav{display:grid}
+  body.menu-open::after{content:"";position:fixed;left:0;right:0;bottom:0;top:var(--hh,58px);background:rgba(10,16,32,.45);z-index:35}
+  #nav .ngrp{display:block;grid-column:1/-1;padding:8px 2px 0}
+  #nav .ngrp:first-child{padding-top:0}
+  #nav button{display:flex;flex-direction:row;align-items:center;justify-content:flex-start;gap:10px;width:auto;min-width:0;min-height:54px;padding:10px 12px;font-size:.92rem;text-align:left;white-space:normal;border:1px solid var(--bd);border-radius:12px;background:var(--card);color:var(--tx);box-shadow:none}
+  #nav button.on{background:var(--hd);color:var(--pri);box-shadow:inset 3px 0 0 var(--acc)}
+  #nav .badge{position:static;margin:0 0 0 auto;transform:none}
+  #navLogout{grid-column:1/-1;justify-content:center;margin-top:6px;color:var(--red)}
+  #page{padding:6px 12px 40px}
+  .card{padding:14px;margin:12px 0}
+  h2{font-size:1.2rem}
+  input,select,textarea{font-size:16px}
+  .stats,.kpis{grid-template-columns:1fr 1fr}
+  .stat{padding:12px}.stat b{font-size:1.3rem}
+  .g3,.g4{grid-template-columns:1fr}
+  #stbl th:nth-child(2),#stbl th:nth-child(3),#stbl th:nth-child(4),#stbl td:nth-child(2),#stbl td:nth-child(3),#stbl td:nth-child(4){display:none}
+  #toast{bottom:20px}
 }
+@media(min-width:960px){#navLogout{display:none}}
 .hrow{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,1fr) 64px 76px 34px;gap:6px;align-items:center;margin:6px 0}.hrow input{margin:0;min-height:40px;padding:6px 8px}.hrow.h{font-size:.78rem;color:var(--mut)}.hrow .x{min-height:36px;padding:0;border-radius:8px}
 .lede{color:var(--mut);margin:-2px 0 16px;max-width:64ch}
 .hint{display:block;font-size:.78rem;font-weight:400;color:var(--mut);margin-top:4px}
@@ -257,8 +277,10 @@ details.sub>.subin{padding:0 14px 12px;border-top:1px solid var(--bd)}
 <!-- APP -->
 <div id="app" hidden>
   <header>
+    <button class="menu" id="btnMenu" type="button" aria-label="Open menu"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
     <button class="back" id="btnBack" type="button" hidden aria-label="Go back"></button>
     <div class="brand"><span class="bolt"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M13.5 2 4.5 13.5h6L9.5 22l9-11.5h-6z" fill="currentColor"/></svg></span><div><b id="hshop"></b><span class="small" id="huser"></span></div></div>
+    <div class="pt"><b id="ptitle"></b><span id="pshop"></span></div>
     <button class="btn sec sm" id="btnLogout" type="button">Logout</button>
   </header>
   <nav id="nav"></nav>
@@ -567,7 +589,7 @@ function showAuth(m){
 }
 function enterApp(){
   $('#boot').hidden=true;$('#auth').hidden=true;$('#app').hidden=false;
-  $('#hshop').textContent=acct.shop;$('#huser').textContent='Login: '+acct.email;
+  $('#hshop').textContent=acct.shop;$('#pshop').textContent=acct.shop;$('#huser').textContent='Login: '+acct.email;
   lastAct=Date.now();tab='dashboard';history.replaceState({t:'dashboard',d:0,p:''},'');setHH();buildNav();go('dashboard');
 }
 function logout(m){
@@ -605,9 +627,9 @@ async function doCreate(e){
 function reorderCount(){const S=stats();return rowsOf(D.items).filter(r=>!isLegacy(r.i,r.v)&&needsOrder(r.i,S[r.v.key].cur)).length}
 function buildNav(){
   const n=reorderCount();
-  $('#nav').innerHTML=TABS.map(t=>(NGRP[t[0]]?'<div class="ngrp">'+NGRP[t[0]]+'</div>':'')+'<button type="button" data-a="go" data-id="'+t[0]+'" class="'+(tab===t[0]?'on':'')+'"><span class="ic">'+(IC[t[0]]||'')+'</span>'+t[1]+(t[0]==='reorder'&&n?'<span class="badge">'+n+'</span>':'')+'</button>').join('');
-  const nv=$('#nav'),on=nv.querySelector('.on');
-  if(on)nv.scrollLeft=Math.max(0,on.offsetLeft-(nv.clientWidth-on.offsetWidth)/2);
+  $('#nav').innerHTML=TABS.map(t=>(NGRP[t[0]]?'<div class="ngrp">'+NGRP[t[0]]+'</div>':'')+'<button type="button" data-a="go" data-id="'+t[0]+'" class="'+(tab===t[0]?'on':'')+'"><span class="ic">'+(IC[t[0]]||'')+'</span>'+t[1]+(t[0]==='reorder'&&n?'<span class="badge">'+n+'</span>':'')+'</button>').join('')+'<button type="button" class="tile" id="navLogout">Log out</button>';
+  const nl=$('#navLogout');if(nl)nl.onclick=()=>logout();
+  const pt=TABS.find(x=>x[0]===tab);if(pt&&$('#ptitle'))$('#ptitle').textContent=pt[1];
 }
 const page=h=>{$('#page').innerHTML=h};
 let skipPop=false;
@@ -632,7 +654,7 @@ window.addEventListener('popstate',e=>{
 });
 document.addEventListener('toggle',e=>{const d=e.target;if(d&&d.matches&&d.matches('details.sub'))MOPEN[d.dataset.k]=d.open},true);
 function go(t,keepScroll){
-  tab=t;buildNav();
+  tab=t;document.body.classList.remove('menu-open');buildNav();
   ({dashboard:pgDash,stock:pgStock,sale:()=>pgEntry('sale'),addstock:()=>pgEntry('stock'),adjust:()=>pgEntry('adj'),reorder:pgReorder,sales:pgSales,reports:pgReports,history:pgHistory,manage:pgManage,account:pgAccount})[t]();
   if(!keepScroll)window.scrollTo(0,0);
   updBack();
@@ -1465,6 +1487,8 @@ $('#forgot').onclick=async()=>{
   catch(x){n.textContent=authMsg(x)}
 };
 $('#btnBack').onclick=()=>history.back();
+$('#btnMenu').onclick=()=>document.body.classList.toggle('menu-open');
+document.addEventListener('click',e=>{if(document.body.classList.contains('menu-open')&&e.target===document.body)document.body.classList.remove('menu-open')});
 $('#btnLogout').onclick=()=>logout();
 window.addEventListener('resize',setHH);
 $('#impfile').onchange=onImport;

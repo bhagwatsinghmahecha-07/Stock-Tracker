@@ -1,0 +1,1493 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#14234b">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Stock Tracker">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<title>Shop Stock Tracker</title>
+<style>
+:root{--bg:#f3f5fa;--card:#fff;--tx:#14203a;--mut:#64708a;--bd:#e2e7f0;--inp:#f9fafd;--pri:#1b2a4e;--priT:#fff;--acc:#f5a524;--accT:#2a1c00;--hd:#eef1f8;
+--red:#d03b3b;--redBg:#fdecec;--grn:#168a4a;--grnBg:#e5f6ed;--amb:#a35f00;--ambBg:#fff3dc;--blue:#2f6fed;
+--hdr1:#14234b;--hdr2:#22397a;--sh:0 1px 2px rgba(20,32,58,.06),0 6px 18px rgba(20,32,58,.06)}
+@media(prefers-color-scheme:dark){:root{--bg:#0d1320;--card:#161e2f;--tx:#e8edf7;--mut:#93a0b8;--bd:#263249;--inp:#1c2639;--pri:#f5a524;--priT:#2a1c00;--acc:#f5a524;--accT:#2a1c00;--hd:#1d2840;
+--red:#ff7f7f;--redBg:#3a1e24;--grn:#4cc98a;--grnBg:#14301f;--amb:#ffbe55;--ambBg:#392b10;--blue:#6ea0ff;
+--hdr1:#0a1020;--hdr2:#16213f;--sh:0 1px 2px rgba(0,0,0,.3),0 6px 18px rgba(0,0,0,.25)}}
+*{box-sizing:border-box}
+body{margin:0;font:16px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;background:var(--bg);color:var(--tx);-webkit-font-smoothing:antialiased}
+h1,h2,h3{margin:.2em 0 .5em;letter-spacing:-.01em}h1{font-size:1.7rem}h2{font-size:1.4rem}h3{font-size:1.08rem}
+.mut{color:var(--mut)}.small{font-size:.85rem}
+[hidden]{display:none!important}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:16px;padding:18px;margin:14px 0;box-shadow:var(--sh)}
+label{display:block;font-weight:600;font-size:.88rem;margin:10px 0;color:var(--tx)}
+input,select,textarea{width:100%;min-height:48px;padding:9px 12px;font:inherit;color:var(--tx);background:var(--inp);border:1.5px solid var(--bd);border-radius:11px;margin-top:5px;transition:border-color .15s,box-shadow .15s}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--acc);box-shadow:0 0 0 3px rgba(245,165,36,.25)}
+input[type=checkbox]{width:auto;min-height:0;margin:0 10px 0 0;transform:scale(1.3);accent-color:var(--acc)}
+.chk{font-weight:400;display:flex;align-items:center}
+.btn{min-height:48px;padding:9px 20px;font:inherit;font-weight:700;border:0;border-radius:12px;background:var(--pri);color:var(--priT);cursor:pointer;box-shadow:0 2px 0 rgba(0,0,0,.12);transition:transform .08s,filter .15s}
+.btn:hover{filter:brightness(1.1)}.btn:active{transform:translateY(1px)}
+.btn.sec{background:var(--card);color:var(--tx);border:1.5px solid var(--bd);box-shadow:none}
+.btn.danger{background:var(--red);color:#fff}
+.btn.sm{min-height:40px;padding:5px 14px;font-size:.9rem;border-radius:10px}
+.btn.big{width:100%;margin-top:14px;font-size:1.08rem;min-height:54px;background:var(--acc);color:var(--accT)}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.g3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+@media(max-width:640px){.g2,.g3{grid-template-columns:1fr}.card{padding:14px;border-radius:14px}}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;margin:10px 0}
+.row input{flex:1;min-width:160px;margin-top:0}
+.rowh{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
+.qrow{display:flex;gap:8px;align-items:center}.qrow select{width:130px}.qrow .ul{white-space:nowrap}
+.err{color:var(--red);font-weight:600;margin:6px 0}.ok{color:var(--grn);font-weight:600;margin:6px 0}
+.info{background:var(--hd);border-radius:12px;padding:10px 14px;margin:10px 0;border-left:4px solid var(--blue)}
+.warn{background:var(--ambBg);color:var(--amb);border-radius:12px;padding:10px 14px;margin:10px 0;font-weight:600;border-left:4px solid var(--acc)}
+.bad{background:var(--redBg);color:var(--red);border-radius:12px;padding:10px 14px;margin:10px 0;font-weight:600;border-left:4px solid var(--red)}
+.good{background:var(--grnBg);color:var(--grn);border-radius:12px;padding:10px 14px;margin:10px 0;font-weight:600;border-left:4px solid var(--grn)}
+header{position:sticky;top:0;z-index:20;background:linear-gradient(110deg,var(--hdr1),var(--hdr2));color:#fff;padding:10px 14px;display:flex;justify-content:space-between;align-items:center;gap:10px;box-shadow:0 2px 12px rgba(0,0,0,.25)}
+header b{font-size:1.1rem}header .small{color:#b9c6e8}
+.brand{display:flex;align-items:center;gap:11px;min-width:0}
+.brand>div{min-width:0}.brand b,.brand span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:block}
+.bolt{display:inline-flex;align-items:center;justify-content:center;width:42px;height:42px;flex:0 0 42px;border-radius:12px;background:var(--acc);color:#2a1c00;font-size:1.35rem;box-shadow:0 3px 10px rgba(245,165,36,.45)}
+header .btn.sec{background:rgba(255,255,255,.12);color:#fff;border:1px solid rgba(255,255,255,.28)}
+nav{display:flex;gap:8px;overflow-x:auto;padding:10px 14px;background:var(--card);border-bottom:1px solid var(--bd);position:sticky;z-index:19;scrollbar-width:thin}
+nav button{flex:0 0 auto;min-height:44px;padding:6px 16px;border:1.5px solid var(--bd);border-radius:24px;background:var(--inp);color:var(--tx);font:inherit;font-weight:600;font-size:.95rem;cursor:pointer;white-space:nowrap;transition:background .15s}
+nav button:hover{background:var(--hd)}
+nav button .ic{margin-right:6px}
+nav{top:var(--hh,64px)}
+@media(min-width:900px){nav{flex-wrap:wrap;position:static;overflow:visible}}
+button.stat{text-align:left;font:inherit;color:inherit;cursor:pointer;width:100%;appearance:none;-webkit-appearance:none;transition:transform .12s,box-shadow .12s,border-color .12s}
+button.stat:hover{transform:translateY(-3px);box-shadow:0 10px 24px rgba(20,32,58,.16);border-color:var(--acc)}
+button.stat:active{transform:translateY(0)}
+button.stat:focus-visible{outline:3px solid var(--acc);outline-offset:2px}
+.stat em{display:block;margin-top:6px;font-style:normal;font-size:.78rem;font-weight:800;color:var(--blue)}
+nav button.on{background:var(--pri);color:var(--priT);border-color:var(--pri);box-shadow:0 2px 8px rgba(0,0,0,.18)}
+.badge{display:inline-block;min-width:22px;padding:0 6px;margin-left:7px;border-radius:11px;background:#e5383b;color:#fff;font-size:.78rem;font-weight:800;text-align:center}
+main{max-width:1100px;margin:0 auto;padding:6px 14px 70px}
+.seg{display:flex;gap:6px;flex-wrap:wrap;margin:6px 0;background:var(--hd);padding:5px;border-radius:14px}
+.seg button{flex:1;min-height:44px;border:0;background:transparent;color:var(--mut);border-radius:10px;font:inherit;font-weight:700;cursor:pointer}
+.seg button.on{background:var(--card);color:var(--tx);box-shadow:var(--sh)}
+.tw{overflow-x:auto;border-radius:12px}
+table{border-collapse:separate;border-spacing:0;width:100%;min-width:560px}
+th,td{padding:10px 12px;border-bottom:1px solid var(--bd);text-align:left;vertical-align:top}
+th{background:var(--hd);font-size:.74rem;text-transform:uppercase;letter-spacing:.05em;color:var(--mut);position:sticky;top:0}
+tbody tr:hover td{background:var(--hd)}
+tr.grp td{background:var(--pri);color:var(--priT);font-weight:800;font-size:1.02rem}
+tr.subh td{background:var(--hd);font-weight:700;color:var(--tx);border-left:4px solid var(--acc)}
+tr.subt td{font-weight:700;background:var(--hd)}
+tr.cat-t td{font-weight:800;background:var(--hd);border-top:2px solid var(--bd)}
+tr.grand td{font-weight:800;background:var(--acc);color:var(--accT);border-top:2px solid var(--bd)}
+tr.low td{background:var(--ambBg)}
+tr.out td{background:var(--redBg);color:var(--red);font-weight:700}
+.tag{display:inline-block;padding:3px 10px;border-radius:12px;font-size:.76rem;font-weight:800;white-space:nowrap}
+.tag.r{background:var(--red);color:#fff}.tag.g{background:var(--grnBg);color:var(--grn)}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;margin-top:12px}
+.stat{position:relative;background:var(--card);border:1px solid var(--bd);border-top:4px solid var(--blue);border-radius:14px;padding:14px 14px 12px;box-shadow:var(--sh)}
+.stat span{display:block;color:var(--mut);font-size:.82rem;font-weight:600;padding-right:34px}.stat b{font-size:1.4rem;display:block;margin-top:4px;line-height:1.25;word-break:break-word}
+.stat::after{position:absolute;top:10px;right:12px;font-size:1.35rem}
+.stat:nth-child(1){border-top-color:#6c5ce7}.stat:nth-child(1)::after{content:"📋"}
+.stat:nth-child(2){border-top-color:#00a8a8}.stat:nth-child(2)::after{content:"📦"}
+.stat:nth-child(3){border-top-color:var(--acc)}.stat:nth-child(3)::after{content:"📤"}
+.stat:nth-child(4){border-top-color:var(--acc)}.stat:nth-child(4)::after{content:"🗓️"}
+.stat:nth-child(5){border-top-color:var(--acc)}.stat:nth-child(5)::after{content:"📈"}
+.stat:nth-child(6){border-top-color:var(--red)}.stat:nth-child(6)::after{content:"⛔"}
+.stat:nth-child(7){border-top-color:var(--red)}.stat:nth-child(7)::after{content:"🔔"}
+.subbox{border:1.5px solid var(--bd);border-radius:14px;padding:12px;margin:12px 0;background:var(--inp)}
+.irow{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;align-items:center;padding:8px 0;border-top:1px dashed var(--bd)}
+.ov{position:fixed;inset:0;background:rgba(8,13,28,.62);backdrop-filter:blur(3px);display:flex;align-items:center;justify-content:center;padding:12px;z-index:50}
+.modal{background:var(--card);border-radius:18px;padding:20px;max-width:520px;width:100%;max-height:92vh;overflow:auto;box-shadow:0 20px 60px rgba(0,0,0,.4)}
+.mbtn{display:flex;gap:10px;justify-content:flex-end;margin-top:14px}
+#toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);background:#14203a;color:#fff;padding:12px 20px;border-radius:26px;z-index:99;max-width:90vw;text-align:center;font-weight:600;box-shadow:0 8px 24px rgba(0,0,0,.35)}
+#auth{max-width:460px;margin:0 auto;padding:22px 14px 40px}
+.hero{text-align:center;padding:26px 14px 16px;border-radius:20px;margin-bottom:6px;background:linear-gradient(120deg,var(--hdr1),var(--hdr2));color:#fff}
+.hero .bolt{width:60px;height:60px;font-size:2rem;border-radius:18px;margin-bottom:8px}
+.hero h1{margin:.1em 0}.hero p{margin:.2em 0 0;color:#c4d0ee;font-size:.95rem}
+a.lnk{color:var(--blue);cursor:pointer;text-decoration:underline;font-weight:600}
+#boot{text-align:center;color:var(--mut)}
+.sw{display:inline-block;width:12px;height:12px;border-radius:50%;border:1px solid rgba(128,128,128,.7);margin-right:6px;vertical-align:-1px}
+.colr{display:inline-block;margin-left:6px;padding:1px 9px;border-radius:12px;background:var(--hd);border:1px solid var(--bd);font-size:.82rem;font-weight:700;white-space:nowrap}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin:6px 0 4px}
+.chip{display:inline-flex;align-items:center;margin:0;padding:8px 14px;border:1.5px solid var(--bd);border-radius:22px;background:var(--inp);font-weight:600;font-size:.92rem;cursor:pointer}
+.chip input[type=checkbox]{margin:0 8px 0 0;transform:scale(1.15)}
+.prow{display:grid;grid-template-columns:84px 1fr 84px 96px;gap:8px;align-items:center;margin:6px 0}.prow input{margin:0}.prow.h{font-size:.78rem;color:var(--mut,#667)}
+.sbars{display:flex;align-items:flex-end;gap:8px;height:130px;border-bottom:1px solid var(--bd);margin:6px 0 4px}
+.sbars>div{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%}
+.sbars i{display:block;width:100%;max-width:34px;background:#2a78d6;border-radius:4px 4px 0 0}
+.sbars span{font-size:.7rem;margin-bottom:2px}
+.slab{display:flex;gap:8px;margin-bottom:10px}.slab div{flex:1;text-align:center;font-size:.72rem;color:var(--mut,#667)}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin:10px 0}
+.kpis div{background:var(--hd);border-radius:10px;padding:10px 12px}.kpis b{display:block;font-size:1.25rem}.kpis span{font-size:.78rem;opacity:.75}
+.shbar{display:inline-block;width:60px;height:6px;background:var(--hd);border-radius:3px;vertical-align:middle;margin-right:6px}.shbar i{display:block;height:6px;background:#2a78d6;border-radius:3px}
+
+/* ---- refined theme ---- */
+:root{--bg:#f4f6fa;--card:#fff;--tx:#101a2e;--mut:#5b6880;--bd:#dde3ee;--inp:#fff;--pri:#14234b;--priT:#fff;--acc:#f2a516;--accT:#1d1400;--hd:#f0f3f9;--ring:rgba(20,35,75,.16);--sh:0 1px 2px rgba(16,26,46,.05);--hdr1:#14234b;--hdr2:#14234b;--font:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif}
+@media(prefers-color-scheme:dark){:root{--bg:#0c1220;--card:#141c2e;--tx:#e7ecf6;--mut:#93a0b8;--bd:#25314a;--inp:#101828;--pri:#f2a516;--priT:#1d1400;--acc:#f2a516;--accT:#1d1400;--hd:#1a2438;--ring:rgba(242,165,22,.28);--sh:none;--hdr1:#0a1020;--hdr2:#0a1020}}
+body{font-family:var(--font);font-size:15.5px;line-height:1.5;background:var(--bg)}
+h1,h2,h3{font-weight:600;letter-spacing:-.005em}h2{font-size:1.3rem}h3{font-size:1.05rem}
+header{background:var(--hdr1);padding:9px 18px;box-shadow:none;border-bottom:1px solid rgba(255,255,255,.08)}
+header b{font-weight:600;font-size:1.02rem}header .small{color:#aab7d6;font-size:.82rem}
+.bolt{width:36px;height:36px;flex:0 0 36px;border-radius:10px;box-shadow:none;background:var(--acc);color:var(--accT)}
+.bolt svg{width:20px;height:20px}
+header .btn.sec{background:transparent;color:#fff;border:1px solid rgba(255,255,255,.3);min-height:38px}
+.card{border-radius:12px;box-shadow:var(--sh);padding:20px;margin:16px 0}
+label{font-weight:500;color:var(--mut);font-size:.85rem}
+.chk,.chip{color:var(--tx)}
+input,select,textarea{min-height:44px;border:1px solid var(--bd);border-radius:9px;background:var(--inp);color:var(--tx)}
+input:focus,select:focus,textarea:focus{border-color:var(--pri);box-shadow:0 0 0 3px var(--ring)}
+.btn{border-radius:9px;box-shadow:none;font-weight:600;min-height:44px}
+.btn.sec{border:1px solid var(--bd)}
+.btn.sm{min-height:36px;border-radius:8px}
+.btn.big{min-height:50px;font-size:1rem;border-radius:10px}
+.info,.warn,.bad,.good{border-radius:9px;font-weight:500}
+th{text-transform:none;letter-spacing:0;font-size:.8rem;font-weight:600;color:var(--mut)}
+th,td{padding:11px 14px}
+table,.stat b,.kpis b{font-variant-numeric:tabular-nums}
+tr.grp td{background:var(--hd);color:var(--tx);font-size:.95rem;border-top:1px solid var(--bd)}
+tr.subh td{border-left:3px solid var(--acc);font-weight:600}
+tr.grand td{background:var(--pri);color:var(--priT);border-top:0}
+.tw{border:1px solid var(--bd);border-radius:10px}
+.stats{grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px}
+.stat{border:1px solid var(--bd);border-radius:12px;box-shadow:none;padding:16px}
+.stat:nth-child(n){border-top-color:var(--bd)}
+.stat:nth-child(n)::after{content:none}
+.stat span{font-size:.82rem;font-weight:500;padding-right:0}
+.stat b{font-size:1.55rem;font-weight:600;margin-top:6px}
+.stat:nth-child(6),.stat:nth-child(7){border-left:3px solid var(--red)}
+button.stat:hover{transform:none;box-shadow:none;border-color:var(--pri)}
+.kpis div{background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:14px}
+.kpis b{font-size:1.35rem;font-weight:600;margin:2px 0}
+.badge{min-width:20px;padding:0 6px;margin-left:auto;font-size:.72rem}
+.modal{border-radius:14px}
+#nav{border:0}
+#nav button{display:flex;align-items:center;gap:12px;width:100%;min-height:42px;padding:8px 12px;border:0;border-radius:9px;background:transparent;color:var(--mut);font-weight:500;font-size:.95rem;text-align:left}
+#nav button:hover{background:var(--hd);color:var(--tx)}
+#nav button .ic{display:inline-flex;margin:0;width:20px;height:20px}
+#nav button.on{background:var(--hd);color:var(--pri);font-weight:600;box-shadow:inset 3px 0 0 var(--acc)}
+#nav .ngrp{font-size:.76rem;font-weight:600;color:var(--mut);padding:14px 12px 4px}
+#nav .ngrp:first-child{padding-top:2px}
+.hero{background:var(--hdr1);border-radius:14px;padding:30px 16px 22px}
+.hero .bolt{width:52px;height:52px;flex:0 0 52px;border-radius:14px;margin:0 auto 8px}.hero .bolt svg{width:28px;height:28px}
+.hero p{color:#b6c2de}
+.seg{border-radius:10px}.seg button{border-radius:8px}
+@media(min-width:960px){
+  #app{display:grid;grid-template-columns:232px minmax(0,1fr);grid-template-rows:auto 1fr;align-items:start}
+  header{grid-column:1/-1}
+  #nav{grid-row:2;grid-column:1;position:sticky;top:var(--hh,56px);height:calc(100vh - var(--hh,56px));flex-direction:column;flex-wrap:nowrap;gap:2px;overflow-x:hidden;overflow-y:auto;padding:14px 10px;background:var(--card);border-right:1px solid var(--bd);border-bottom:0}
+  #page{grid-row:2;grid-column:2;width:100%;max-width:1120px;margin:0;padding:8px 28px 60px}
+}
+@media(max-width:959px){
+  #nav{position:fixed;left:0;right:0;top:auto;bottom:0;z-index:40;flex-direction:row;flex-wrap:nowrap;gap:2px;overflow-x:auto;overflow-y:hidden;padding:6px 6px calc(6px + env(safe-area-inset-bottom));background:var(--card);border-top:1px solid var(--bd);border-bottom:0}
+  #nav .ngrp{display:none}
+  #nav button{flex:0 0 auto;flex-direction:column;justify-content:center;width:auto;min-width:68px;min-height:54px;padding:6px 8px;gap:3px;font-size:.68rem;text-align:center;white-space:nowrap}
+  #nav button.on{box-shadow:inset 0 3px 0 var(--acc)}
+  #nav .badge{position:absolute;margin:0;transform:translate(14px,-18px)}
+  #nav button{position:relative}
+  #page{padding:6px 14px 110px}
+  .card{padding:16px}
+  #toast{bottom:84px}
+}
+.hrow{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,1fr) 64px 76px 34px;gap:6px;align-items:center;margin:6px 0}.hrow input{margin:0;min-height:40px;padding:6px 8px}.hrow.h{font-size:.78rem;color:var(--mut)}.hrow .x{min-height:36px;padding:0;border-radius:8px}
+.lede{color:var(--mut);margin:-2px 0 16px;max-width:64ch}
+.hint{display:block;font-size:.78rem;font-weight:400;color:var(--mut);margin-top:4px}
+.step{display:flex;align-items:center;gap:9px;font-weight:600;font-size:.98rem;margin:20px 0 6px}
+.step i{font-style:normal;flex:0 0 22px;height:22px;border-radius:50%;background:var(--pri);color:var(--priT);font-size:.78rem;display:inline-flex;align-items:center;justify-content:center}
+.empty{text-align:center;padding:26px 12px;color:var(--mut)}.empty b{display:block;color:var(--tx);font-size:1.02rem;margin-bottom:4px}
+.empty .btn{margin-top:12px}
+details.more{margin-top:14px}details.more>summary{cursor:pointer;font-weight:600;padding:8px 0;color:var(--tx)}
+details.sub{border:1px solid var(--bd);border-radius:12px;margin:10px 0;background:var(--card)}
+details.sub>summary{cursor:pointer;list-style:none;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px 14px;font-weight:600}
+details.sub>summary::-webkit-details-marker{display:none}
+details.sub>summary::after{content:"+";font-size:1.2rem;color:var(--mut);font-weight:400}
+details.sub[open]>summary::after{content:"−"}
+details.sub>.subin{padding:0 14px 12px;border-top:1px solid var(--bd)}
+.acts{display:flex;gap:6px;flex-wrap:wrap;margin:10px 0 4px}
+.brand{flex:1}
+.back{flex:0 0 auto;min-height:36px;padding:4px 12px;margin-right:4px;border-radius:9px;border:1px solid rgba(255,255,255,.3);background:transparent;color:#fff;font:inherit;font-weight:600;font-size:.9rem;cursor:pointer;white-space:nowrap}
+.back:hover{background:rgba(255,255,255,.1)}
+@media print{#app{display:block}}
+@page{margin:12mm}
+.printhead{display:none}
+@media print{.printhead{display:block;margin:0 0 12px}.tw{overflow:visible}table{min-width:0;font-size:12px}th{position:static}tbody tr:hover td{background:inherit}header,nav,.noprint,.btn,#toast{display:none!important}body{background:#fff;color:#000}.card{border:0;box-shadow:none}main{padding:0}tr.grp td,tr.grand td{background:#ddd!important;color:#000!important}}
+</style>
+</head>
+<body>
+<noscript>Please turn on JavaScript to use this app.</noscript>
+
+<!-- LOADING -->
+<div id="boot" class="card" style="max-width:440px;margin:30px auto">Loading... If this stays for a long time, please check your internet connection.</div>
+
+<!-- LOGIN / CREATE ACCOUNT -->
+<div id="auth" hidden>
+  <div class="hero"><span class="bolt"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M13.5 2 4.5 13.5h6L9.5 22l9-11.5h-6z" fill="currentColor"/></svg></span><h1>Shop Stock Tracker</h1><p>Log in to see your shop's stock.</p></div>
+  <div id="cfgwarn" class="bad" hidden>Setup needed: the Firebase settings are not filled in yet. Open this file in a text editor and paste your settings where it says PASTE_.</div>
+  <div class="card">
+    <div class="seg" hidden><button id="tLogin" class="on" type="button">Login</button><button id="tCreate" type="button">Create Account</button></div>
+
+    <form id="fLogin" autocomplete="on">
+      <label>Email<input id="lu" type="email" autocomplete="username" autocapitalize="none"></label>
+      <label>Password<input id="lp" type="password" autocomplete="current-password"></label>
+      <label class="chk"><input type="checkbox" id="lshow">Show password</label>
+      <div id="lerr" class="err" role="alert"></div>
+      <button class="btn big" type="submit">Login</button>
+      <p><a class="lnk" id="forgot">Forgot password?</a></p>
+      <div id="fnote" class="warn" hidden></div>
+    </form>
+
+    <form id="fCreate" hidden autocomplete="off">
+      <label>Shop name<input id="cs" maxlength="60"></label>
+      <label>Email<input id="cu" type="email" autocomplete="username" autocapitalize="none" maxlength="80"></label>
+      <label>Password (at least 6 characters)<input id="cp" type="password" autocomplete="new-password"></label>
+      <div id="cstr" class="small mut"></div>
+      <label>Confirm password<input id="cp2" type="password" autocomplete="new-password"></label>
+      <label class="chk"><input type="checkbox" id="cshow">Show password</label>
+      <div id="cerr" class="err" role="alert"></div>
+      <button class="btn big" type="submit">Create Account</button>
+      <p class="small mut">One account is shared by everyone in your shop. Anyone who knows the email and password sees the same stock.</p>
+    </form>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app" hidden>
+  <header>
+    <button class="back" id="btnBack" type="button" hidden aria-label="Go back"></button>
+    <div class="brand"><span class="bolt"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M13.5 2 4.5 13.5h6L9.5 22l9-11.5h-6z" fill="currentColor"/></svg></span><div><b id="hshop"></b><span class="small" id="huser"></span></div></div>
+    <button class="btn sec sm" id="btnLogout" type="button">Logout</button>
+  </header>
+  <nav id="nav"></nav>
+  <main id="page"></main>
+</div>
+<div id="toast" hidden></div>
+<input type="file" id="impfile" accept=".json,application/json" hidden>
+
+<script type="module">
+import {initializeApp} from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js';
+import {getAuth,onAuthStateChanged,signInWithEmailAndPassword,createUserWithEmailAndPassword,signOut,sendPasswordResetEmail,reauthenticateWithCredential,EmailAuthProvider,updatePassword,deleteUser} from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js';
+import {initializeFirestore,persistentLocalCache,persistentMultipleTabManager,doc,setDoc,deleteDoc,onSnapshot,collection,getDocs,writeBatch} from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js';
+
+/* =====================================================================
+   SETUP STEP: paste your Firebase settings below (replace every PASTE_...)
+   You get these from Firebase console > Project settings > Your apps.
+   ===================================================================== */
+const firebaseConfig={
+  apiKey:"AIzaSyCOm8L7BJgY_Zg0OLKlZAS9kNDapHUKapY",
+  authDomain:"shop-stock-cbdac.firebaseapp.com",
+  projectId:"shop-stock-cbdac",
+  storageBucket:"shop-stock-cbdac.firebasestorage.app",
+  messagingSenderId:"1057442344103",
+  appId:"1:1057442344103:web:f2d18ffdb042a2c31d7f82"
+};
+
+(function(){
+'use strict';
+const $=s=>document.querySelector(s);
+const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,8);
+const r2=x=>Math.round(x*100)/100;
+const pad=n=>String(n).padStart(2,'0');
+const today=()=>{const d=new Date();return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate())};
+const MON=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const fd=s=>{if(!s)return'';const p=s.split('-');return (+p[2])+' '+MON[+p[1]-1]+' '+p[0]};
+
+/* ---------- settings kept on this device only ---------- */
+const store={
+  get(k){try{return localStorage.getItem(k)}catch(e){return null}},
+  set(k,v){try{localStorage.setItem(k,v);return true}catch(e){return false}}
+};
+function strength(p){
+  let s=0;if(p.length>=6)s++;if(p.length>=10)s++;if(/[a-z]/.test(p)&&/[A-Z]/.test(p))s++;if(/\d/.test(p))s++;if(/[^A-Za-z0-9]/.test(p))s++;
+  if(!p)return'';
+  return s<=2?'Strength: Weak. Try a longer password with numbers.':s===3?'Strength: Okay.':'Strength: Strong.';
+}
+
+/* ---------- state ---------- */
+const IC={dashboard:'<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/></svg>',sales:'<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 5h10M7 9.5h10M7 5c5.5 0 6.5 6-.5 6.5L13 19"/></svg>',sale:'<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17 17 7M9 7h8v8"/></svg>',addstock:'<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>',adjust:'<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h9M17 7h3M4 17h3M11 17h9"/><circle cx="15" cy="7" r="2"/><circle cx="9" cy="17" r="2"/></svg>',stock:'<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7.5 12 3l9 4.5v9L12 21l-9-4.5z"/><path d="M3 7.5 12 12l9-4.5M12 12v9"/></svg>',reorder:'<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 16v-5a6 6 0 1 1 12 0v5l1.5 2h-15z"/><path d="M10 21h4"/></svg>',reports:'<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 20V10M12 20V4M19 20v-7"/></svg>',history:'<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>',manage:'<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M5.6 18.4l2.1-2.1M16.3 7.7l2.1-2.1"/></svg>',account:'<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg>'};
+let user=null,acct=null,D=null,tab='dashboard',lastAct=Date.now(),pendingShop='',pendingMsg='',seeding=false;
+let unsubs=[],shopRef=null;
+const App={};
+const TABS=[['dashboard','Dashboard'],['sales','Sales ₹'],['sale','Add Sale'],['addstock','Add Stock'],['adjust','Adjust Stock'],['stock','Stock'],['reorder','Reorder List'],['reports','Reports'],['history','History'],['manage','Manage'],['account','Account']];
+const NGRP={dashboard:'Overview',sale:'Daily work',stock:'Records',manage:'Setup'};
+let FS={q:'',cat:'',sub:'',size:'',color:''},RF={cat:'',sub:'',color:''},R={period:'day',date:null,cat:'',sub:'',color:''},H={kind:'sale',from:'',to:'',q:''};
+const MOPEN={};
+let lastCSV=[],DF={sub:'',size:'',color:''};
+
+/* ---------- firebase ---------- */
+const CONFIGURED=!/PASTE_/.test(JSON.stringify(firebaseConfig));
+let auth=null,db=null;
+if(CONFIGURED){
+  const fb=initializeApp(firebaseConfig);
+  auth=getAuth(fb);
+  try{db=initializeFirestore(fb,{localCache:persistentLocalCache({tabManager:persistentMultipleTabManager()}),ignoreUndefinedProperties:true})}
+  catch(e){db=initializeFirestore(fb,{ignoreUndefinedProperties:true})}
+}
+const entRef=id=>doc(db,'shops',user,'entries',id);
+const clean=o=>JSON.parse(JSON.stringify(o));
+const fail=e=>toast('Could not save: '+((e&&e.message)||e));
+
+/* ---------- data ---------- */
+function seedData(){
+  const cat={id:uid(),name:'Wires & Cables'};
+  const subs=['Superio','Superio+','Classo+','Arizo+','Superior 200mtr+'].map(n=>({id:uid(),catId:cat.id,name:n}));
+  const items=[];
+  subs.forEach(s=>['1.0 sqmm','1.5 sqmm','2.5 sqmm','4.0 sqmm','6.0 sqmm'].forEach(n=>items.push({id:uid(),subId:s.id,name:n,unit:'coil',mpc:200,start:0,low:0,target:0,colors:['Red','Blue','Yellow','Green','Black'],cstart:{}})));
+  return{cats:[cat],subs,items,entries:[],lastBackup:null};
+}
+function normData(d){
+  d=d&&typeof d==='object'?d:{};
+  ['cats','subs','items','entries'].forEach(k=>{if(!Array.isArray(d[k]))d[k]=[]});
+  d.items.forEach(i=>{i.prices=Array.isArray(i.prices)?i.prices:[];i.colors=Array.isArray(i.colors)?i.colors.filter(Boolean):[];i.cstart=(i.cstart&&typeof i.cstart==='object')?i.cstart:{};for(const k in i.cstart)i.cstart[k]=+i.cstart[k]||0;i.mpc=+i.mpc||0;i.start=+i.start||0;i.low=+i.low||0;i.target=+i.target||0;i.unit=i.unit||(i.mpc?'coil':'piece')});
+  d.entries.forEach(e=>{e.snap=e.snap||{};e.color=e.color||''});
+  d.lastBackup=d.lastBackup||null;
+  return d;
+}
+/* save() writes the catalogue (categories, subcategories, items). Entries are saved one by one. */
+function save(){
+  if(!shopRef){toast('Not connected. Please log in again.');return false}
+  setDoc(shopRef,clean({cats:D.cats,subs:D.subs,items:D.items,lastBackup:D.lastBackup||null}),{merge:true}).catch(fail);
+  return true;
+}
+function saveEntry(e){return setDoc(entRef(e.id),clean(e)).catch(fail)}
+function removeEntry(id){return deleteDoc(entRef(id)).catch(fail)}
+async function batchOps(ops){
+  for(let i=0;i<ops.length;i+=400){const b=writeBatch(db);ops.slice(i,i+400).forEach(f=>f(b));await b.commit()}
+}
+function onRemote(){
+  if(!user||!D)return;
+  buildNav();
+  if(['dashboard','stock','reorder','reports','history'].includes(tab)&&!document.querySelector('.ov'))go(tab,true);
+}
+function teardown(){unsubs.forEach(f=>{try{f()}catch(e){}});unsubs=[];shopRef=null;seeding=false}
+function startSync(uid){
+  return new Promise((resolve,reject)=>{
+    shopRef=doc(db,'shops',uid);
+    let gotC=false,gotE=false,done=false;
+    const ready=()=>{if(gotC&&gotE&&!done){done=true;resolve()}};
+    D={cats:[],subs:[],items:[],entries:[],lastBackup:null};
+    const u1=onSnapshot(shopRef,snap=>{
+      if(!snap.exists()){
+        if(snap.metadata&&snap.metadata.fromCache)return;
+        if(!seeding){
+          seeding=true;
+          const s=seedData();
+          setDoc(shopRef,clean({shop:pendingShop||'My Shop',created:Date.now(),cats:s.cats,subs:s.subs,items:s.items,lastBackup:null})).catch(reject);
+        }
+        return;
+      }
+      const d=snap.data();
+      acct={shop:d.shop||'My Shop',email:(auth.currentUser&&auth.currentUser.email)||''};
+      D.cats=d.cats||[];D.subs=d.subs||[];D.items=d.items||[];D.lastBackup=d.lastBackup||null;
+      normData(D);
+      gotC=true;
+      if(done)onRemote();else ready();
+    },reject);
+    const u2=onSnapshot(collection(db,'shops',uid,'entries'),snap=>{
+      D.entries=snap.docs.map(x=>x.data());
+      normData(D);
+      gotE=true;
+      if(done)onRemote();else ready();
+    },reject);
+    unsubs=[u1,u2];
+  });
+}
+
+/* ---------- helpers ---------- */
+const catById=id=>D.cats.find(c=>c.id===id),subById=id=>D.subs.find(s=>s.id===id),itemById=id=>D.items.find(i=>i.id===id);
+const catOfSub=id=>{const s=subById(id);return s?s.catId:null};
+const vk=(id,c)=>c?id+'|'+c:id;
+const PRESET=['Red','Blue','Yellow','Green','Black'];
+const COLORHEX={red:'#e02929',blue:'#2f6fed',yellow:'#f5c400',green:'#1f9d55',black:'#111',white:'#fff',grey:'#9aa3b2',gray:'#9aa3b2',orange:'#f08a00',brown:'#7a4a21',pink:'#ec6aa6',purple:'#7a4bd1'};
+const sw=c=>{const h=COLORHEX[String(c||'').trim().toLowerCase()];return h?'<span class="sw" style="background:'+h+'"></span>':''};
+const snapOf=(i,color)=>{const s=subById(i.subId)||{},c=catById(s.catId)||{};return{cat:c.name||'',sub:s.name||'',name:i.name,color:color||'',unit:i.unit,mpc:i.mpc||0,rate:((i.prices||[]).length?i.prices[i.prices.length-1].rate:0),catId:c.id,subId:s.id}};
+const nameOf=s=>(s.name||'')+(s.color?' ('+s.color+')':'');
+/* every item is one row, or one row per color when the item has colors */
+function variants(i){
+  if(!i.colors.length)return[{key:i.id,color:'',label:'',start:i.start||0}];
+  const a=i.colors.map(c=>({key:vk(i.id,c),color:c,label:c,start:+i.cstart[c]||0}));
+  if((i.start||0)>0||D.entries.some(e=>e.itemId===i.id&&!e.color))a.push({key:i.id,color:'',label:'No color (old stock)',start:i.start||0});
+  return a;
+}
+const isLegacy=(i,v)=>i.colors.length>0&&!v.color;
+function rowsOf(items){const o=[];items.forEach(i=>variants(i).forEach(v=>o.push({i,v})));return o}
+const rowName=r=>esc(r.i.name)+(r.v.color?'<span class="colr">'+sw(r.v.color)+esc(r.v.color)+'</span>':(r.v.label?' <span class="mut small">· '+esc(r.v.label)+'</span>':''));
+const rowText=r=>r.i.name+(r.v.color?' ('+r.v.color+')':r.v.label?' - '+r.v.label:'');
+const rs=n=>'₹'+Math.round(n).toLocaleString('en-IN');
+const priceAt=(it,date)=>{let r=null;for(const p of it.prices)if(p.from<=date)r=p;return r||it.prices[0]||null};
+const rateAt=(it,date)=>{const r=priceAt(it,date);return r?r.rate:0};
+function setPrice(it,from,mrp,disc){
+  if(!it.prices.length)from='0000-00-00';
+  const act=priceAt(it,from);
+  if(act&&act.mrp===mrp&&act.disc===disc)return false;
+  const rec={from,mrp,disc,rate:r2(mrp*(1-disc/100))},k=it.prices.findIndex(x=>x.from===from);
+  if(k>=0)it.prices[k]=rec;else{it.prices.push(rec);it.prices.sort((a,b)=>a.from<b.from?-1:a.from>b.from?1:0)}
+  return true;
+}
+const curOf=e=>{const s=stats()[vk(e.itemId,e.color)];return s?s.cur:0};
+const liveOf=e=>itemById(e.itemId);
+const infoOf=e=>{const it=liveOf(e);return it?snapOf(it,e.color):e.snap};
+const epath=e=>{const s=infoOf(e);return esc(s.cat+' › '+s.sub+' › '+nameOf(s))+(liveOf(e)?'':' <span class="mut">(deleted)</span>')};
+function fmtQ(q,it){
+  q=r2(q||0);const mpc=it&&it.mpc>0?it.mpc:0;
+  if(mpc){const c=r2(q/mpc),u=(it.unit||'coil');return c+' '+(Math.abs(c)===1?u:u+'s')}
+  return q+' '+((it&&it.unit)||'pcs');
+}
+const rawU=(q,it)=>it&&it.mpc>0?r2(q/it.mpc):q;
+const newT=()=>({m:0,p:0});
+const addT=(t,q,mpc)=>{if(mpc>0)t.m=r2(t.m+q/mpc);else t.p=r2(t.p+q)};
+const fmtT=t=>{const a=[];if(t.m)a.push(t.m.toLocaleString()+(Math.abs(t.m)===1?' coil':' coils'));if(t.p)a.push(t.p.toLocaleString()+' pcs');return a.join(' + ')||'0'};
+const T4=()=>({a:newT(),s:newT(),j:newT(),c:newT()});
+function addRow(T,s,i){const m=i.mpc||0;addT(T.a,s.tot,m);addT(T.s,s.sold,m);addT(T.j,s.adj,m);addT(T.c,s.cur,m)}
+const mergeT1=(T,U)=>{T.m=r2(T.m+U.m);T.p=r2(T.p+U.p)};
+function mergeT(T,U){['a','s','j','c'].forEach(k=>{T[k].m=r2(T[k].m+U[k].m);T[k].p=r2(T[k].p+U[k].p)})}
+
+function stats(o){
+  o=o||{};const S={};
+  D.items.forEach(i=>variants(i).forEach(v=>S[v.key]={start:v.start||0,added:0,sold:0,adj:0}));
+  D.entries.forEach(e=>{
+    const s=S[vk(e.itemId,e.color)];if(!s)return;
+    if(o.upTo&&e.date>o.upTo)return;
+    if(o.before&&e.date>=o.before)return;
+    if(e.type==='stock')s.added+=e.qty;else if(e.type==='sale')s.sold+=e.qty;else s.adj+=e.dir==='in'?e.qty:-e.qty;
+  });
+  for(const k in S){const s=S[k];s.tot=r2(s.start+s.added);s.sold=r2(s.sold);s.adj=r2(s.adj);s.cur=r2(s.tot-s.sold+s.adj)}
+  return S;
+}
+function groups(items){
+  const out=[];
+  D.cats.forEach(c=>{
+    const subs=[];
+    D.subs.filter(s=>s.catId===c.id).forEach(s=>{const its=items.filter(r=>r.i.subId===s.id);if(its.length)subs.push({sub:s,rows:its})});
+    if(subs.length)out.push({cat:c,subs});
+  });
+  return out;
+}
+const needsOrder=(i,cur)=>cur<=(i.low||0);
+
+function toast(m){const t=$('#toast');t.textContent=m;t.hidden=false;clearTimeout(toast.t);toast.t=setTimeout(()=>t.hidden=true,3200)}
+function csvText(rows){return rows.map(r=>r.map(c=>'"'+String(c==null?'':c).replace(/"/g,'""')+'"').join(',')).join('\r\n')}
+function download(name,text,mime){
+  const b=new Blob([text],{type:mime||'text/plain'}),a=document.createElement('a');
+  a.href=URL.createObjectURL(b);a.download=name;document.body.appendChild(a);a.click();
+  setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},500);
+}
+function modal(title,html,okLabel,onOk,opts){
+  opts=opts||{};
+  const ov=document.createElement('div');ov.className='ov';
+  ov.innerHTML='<div class="modal" role="dialog"><h3>'+esc(title)+'</h3><div>'+html+'</div><div class="err merr" hidden></div><div class="mbtn"><button class="btn sec" data-c type="button">Cancel</button>'+(okLabel?'<button class="btn'+(opts.danger?' danger':'')+'" data-ok type="button">'+esc(okLabel)+'</button>':'')+'</div></div>';
+  document.body.appendChild(ov);
+  {const cs=history.state||{};history.pushState({m:1,t:cs.t,d:cs.d||0,p:cs.p||''},'')}
+  const close=()=>{ov.remove();if(history.state&&history.state.m){skipPop=true;history.back()}};
+  ov.querySelector('[data-c]').onclick=close;
+  const ok=ov.querySelector('[data-ok]');
+  if(ok)ok.onclick=async()=>{
+    const r=await onOk(ov);
+    if(typeof r==='string'){const e=ov.querySelector('.merr');e.textContent=r;e.hidden=false}
+    else if(r!==false)close();
+  };
+  ov.querySelectorAll('input:not([type=checkbox])').forEach(i=>i.addEventListener('keydown',e=>{if(e.key==='Enter'&&ok){e.preventDefault();ok.click()}}));
+  const f=ov.querySelector('input,select');if(f)f.focus();
+  return ov;
+}
+const confirmBox=(title,msg,label,fn)=>modal(title,'<p>'+msg+'</p>',label,fn,{danger:true});
+
+/* ---------- pickers & quantity ---------- */
+const pickerHTML=(id,all,noItem)=>'<div class="'+(noItem?'g2':'g3')+'" id="'+id+'g"><label>Category<select id="'+id+'c"></select></label><label>Subcategory<select id="'+id+'s"></select></label>'+(noItem?'':'<label>Item / size<select id="'+id+'i"></select></label>')+'<label id="'+id+'cw" hidden>Color<select id="'+id+'col"></select></label></div>';
+function wirePicker(id,all,noItem,cb,init){
+  init=init||{};
+  const c=$('#'+id+'c'),s=$('#'+id+'s'),i=noItem?null:$('#'+id+'i'),col=$('#'+id+'col'),cw=$('#'+id+'cw'),g=$('#'+id+'g');
+  const keep=(el,v)=>{if([...el.options].some(o=>o.value===v))el.value=v};
+  const fillC=v=>{c.innerHTML=(all?'<option value="">All categories</option>':'')+D.cats.map(x=>'<option value="'+x.id+'">'+esc(x.name)+'</option>').join('');keep(c,v)};
+  const fillS=v=>{s.innerHTML=(all?'<option value="">All subcategories</option>':'')+D.subs.filter(x=>x.catId===c.value).map(x=>'<option value="'+x.id+'">'+esc(x.name)+'</option>').join('');keep(s,v)};
+  const fillI=v=>{if(!i)return;i.innerHTML=D.items.filter(x=>x.subId===s.value).map(x=>'<option value="'+x.id+'">'+esc(x.name)+'</option>').join('');keep(i,v)};
+  const fillCol=v=>{
+    let h='',n=0;
+    if(noItem){
+      const set=[];
+      D.items.filter(x=>(!c.value||catOfSub(x.subId)===c.value)&&(!s.value||x.subId===s.value)).forEach(x=>x.colors.forEach(k=>{if(!set.some(y=>y.toLowerCase()===k.toLowerCase()))set.push(k)}));
+      n=set.length;h='<option value="">All colors</option>'+set.map(k=>'<option value="'+esc(k)+'">'+esc(k)+'</option>').join('');
+    }else{
+      const it=itemById(i.value);
+      if(it&&it.colors.length){
+        const vs=variants(it).filter(x=>!(init.kind==='stock'&&isLegacy(it,x)));
+        n=vs.length;h='<option value="#">Select color...</option>'+vs.map(x=>'<option value="'+esc(x.color)+'">'+esc(x.label)+'</option>').join('');
+      }
+    }
+    col.innerHTML=h;cw.hidden=!n;
+    g.className=n?(noItem?'g3':'g2'):(noItem?'g2':'g3');
+    if(n&&v)keep(col,v);
+  };
+  fillC(init.cat);fillS(init.sub);fillI(init.item);fillCol(init.color);
+  c.onchange=()=>{fillS('');fillI('');fillCol('');cb()};
+  s.onchange=()=>{fillI('');fillCol('');cb()};
+  if(i)i.onchange=()=>{fillCol('');cb()};
+  col.onchange=cb;
+  cb();
+}
+const pickedItem=id=>{const el=$('#'+id+'i');return el?itemById(el.value):null};
+const qtyHTML=id=>'<div class="qrow"><input id="'+id+'q" type="number" inputmode="decimal" min="0" step="any" placeholder="Quantity"><span class="ul" id="'+id+'l"></span></div>';
+function syncUnit(id,it){
+  const l=$('#'+id+'l');if(!l)return;
+  l.textContent=it?(it.mpc>0?'coils':it.unit):'';
+}
+function readQty(id,it){
+  const v=parseFloat($('#'+id+'q').value);
+  if(!(v>0))return null;
+  if(it.mpc>0)return r2(v*it.mpc);
+  return Number.isInteger(v)?v:null;
+}
+const QERR='Please enter a quantity greater than zero (whole numbers for pieces and boxes).';
+const msg=(el,t,ok)=>{el.innerHTML=t?'<div class="'+(ok?'good':'bad')+'">'+esc(t)+'</div>':''};
+
+/* ---------- auth ---------- */
+function authMsg(x){
+  const c=(x&&x.code)||'';
+  if(c==='auth/invalid-email')return 'Please enter a valid email address.';
+  if(/invalid-credential|user-not-found|wrong-password/.test(c))return 'Wrong email or password.';
+  if(c==='auth/email-already-in-use')return 'An account with this email already exists. Please log in instead.';
+  if(c==='auth/weak-password')return 'Password is too weak. Use at least 6 characters.';
+  if(c==='auth/too-many-requests')return 'Too many attempts. Please wait a few minutes, or use Forgot password.';
+  if(c==='auth/network-request-failed')return 'No internet connection. Please try again.';
+  if(c==='auth/operation-not-allowed')return 'Email/Password login is not turned on in Firebase yet. See the setup steps.';
+  if(c==='auth/requires-recent-login')return 'Please log out, log in again and retry.';
+  return 'Something went wrong: '+((x&&x.message)||x);
+}
+function showBoot(t){$('#auth').hidden=true;$('#app').hidden=true;$('#boot').hidden=false;if(t)$('#boot').textContent=t}
+function showAuth(m){
+  teardown();user=acct=D=null;
+  $('#boot').hidden=true;$('#app').hidden=true;$('#auth').hidden=false;
+  $('#cfgwarn').hidden=CONFIGURED;
+  setAuthTab(true);
+  $('#lerr').textContent=m||'';$('#lp').value='';$('#cp').value=$('#cp2').value='';
+}
+function enterApp(){
+  $('#boot').hidden=true;$('#auth').hidden=true;$('#app').hidden=false;
+  $('#hshop').textContent=acct.shop;$('#huser').textContent='Login: '+acct.email;
+  lastAct=Date.now();tab='dashboard';history.replaceState({t:'dashboard',d:0,p:''},'');setHH();buildNav();go('dashboard');
+}
+function logout(m){
+  pendingMsg=m||'';
+  if(auth)signOut(auth).catch(()=>showAuth(m));else showAuth(m);
+}
+function setAuthTab(login){
+  $('#fLogin').hidden=!login;$('#fCreate').hidden=login;
+  $('#tLogin').className=login?'on':'';$('#tCreate').className=login?'':'on';
+}
+async function doLogin(e){
+  e.preventDefault();
+  const em=$('#lu').value.trim(),p=$('#lp').value,err=$('#lerr');
+  err.textContent='';
+  if(!CONFIGURED){err.textContent='Setup needed: Firebase settings are not filled in.';return}
+  if(!em||!p){err.textContent='Please enter your email and password.';return}
+  try{await signInWithEmailAndPassword(auth,em,p)}catch(x){err.textContent=authMsg(x)}
+}
+async function doCreate(e){
+  e.preventDefault();
+  return; /* sign-up is turned off: this app is for one shop only */
+  const shop=$('#cs').value.trim(),em=$('#cu').value.trim(),p=$('#cp').value,p2=$('#cp2').value,err=$('#cerr');
+  err.textContent='';
+  if(!CONFIGURED)return err.textContent='Setup needed: Firebase settings are not filled in.';
+  if(!shop)return err.textContent='Please enter your shop name.';
+  if(!/^\S+@\S+\.\S+$/.test(em))return err.textContent='Please enter a valid email address.';
+  if(p.length<6)return err.textContent='Password must be at least 6 characters.';
+  if(p!==p2)return err.textContent='The two passwords do not match.';
+  pendingShop=shop;
+  try{await createUserWithEmailAndPassword(auth,em,p);$('#cs').value=$('#cu').value=''}
+  catch(x){err.textContent=authMsg(x)}
+}
+
+/* ---------- navigation ---------- */
+function reorderCount(){const S=stats();return rowsOf(D.items).filter(r=>!isLegacy(r.i,r.v)&&needsOrder(r.i,S[r.v.key].cur)).length}
+function buildNav(){
+  const n=reorderCount();
+  $('#nav').innerHTML=TABS.map(t=>(NGRP[t[0]]?'<div class="ngrp">'+NGRP[t[0]]+'</div>':'')+'<button type="button" data-a="go" data-id="'+t[0]+'" class="'+(tab===t[0]?'on':'')+'"><span class="ic">'+(IC[t[0]]||'')+'</span>'+t[1]+(t[0]==='reorder'&&n?'<span class="badge">'+n+'</span>':'')+'</button>').join('');
+  const nv=$('#nav'),on=nv.querySelector('.on');
+  if(on)nv.scrollLeft=Math.max(0,on.offsetLeft-(nv.clientWidth-on.offsetWidth)/2);
+}
+const page=h=>{$('#page').innerHTML=h};
+let skipPop=false;
+function updBack(){
+  const b=document.getElementById('btnBack');if(!b)return;
+  const st=history.state||{},show=(st.d||0)>0&&!document.querySelector('.ov');
+  b.hidden=!show;
+  if(show){const pt=TABS.find(x=>x[0]===st.p);b.textContent='← '+(pt?pt[1]:'Back')}
+}
+function navTo(t){
+  if(t===tab)return go(t);
+  const st=history.state||{};
+  history.pushState({t,d:(st.d||0)+1,p:tab},'');
+  go(t);
+}
+window.addEventListener('popstate',e=>{
+  if(skipPop){skipPop=false;updBack();return}
+  const ov=document.querySelector('.ov');
+  if(ov){ov.remove();updBack();return}
+  const st=e.state;
+  if(st&&st.t&&!st.m&&!$('#app').hidden)go(st.t);
+});
+document.addEventListener('toggle',e=>{const d=e.target;if(d&&d.matches&&d.matches('details.sub'))MOPEN[d.dataset.k]=d.open},true);
+function go(t,keepScroll){
+  tab=t;buildNav();
+  ({dashboard:pgDash,stock:pgStock,sale:()=>pgEntry('sale'),addstock:()=>pgEntry('stock'),adjust:()=>pgEntry('adj'),reorder:pgReorder,sales:pgSales,reports:pgReports,history:pgHistory,manage:pgManage,account:pgAccount})[t]();
+  if(!keepScroll)window.scrollTo(0,0);
+  updBack();
+}
+App.go=id=>navTo(id);
+App.statGo=id=>{
+  const t=today();
+  if(id==='stock'){FS={q:'',cat:'',sub:'',size:'',color:''};return navTo('stock')}
+  if(id==='reorder'){RF={cat:'',sub:'',color:''};return navTo('reorder')}
+  H.kind='sale';H.q='';
+  if(id==='today'){H.from=H.to=t}
+  else if(id==='month'){H.from=t.slice(0,7)+'-01';H.to=t.slice(0,7)+'-31'}
+  else{H.from=t.slice(0,4)+'-01-01';H.to=t.slice(0,4)+'-12-31'}
+  navTo('history');
+};
+function setHH(){const e=document.querySelector('header');if(e)document.documentElement.style.setProperty('--hh',e.offsetHeight+'px')}
+const refresh=()=>go(tab,true);
+
+/* ---------- dashboard ---------- */
+function pgDash(){
+  const S=stats(),tot=newT();
+  rowsOf(D.items).forEach(r=>addT(tot,S[r.v.key].cur,r.i.mpc||0));
+  const t=today(),mo=t.slice(0,7),yr=t.slice(0,4),sd=newT(),sm=newT(),sy=newT();
+  D.entries.filter(e=>e.type==='sale').forEach(e=>{
+    const m=infoOf(e).mpc||0;
+    if(e.date===t)addT(sd,e.qty,m);
+    if(e.date.slice(0,7)===mo)addT(sm,e.qty,m);
+    if(e.date.slice(0,4)===yr)addT(sy,e.qty,m);
+  });
+  const out=rowsOf(D.items).filter(r=>!isLegacy(r.i,r.v)&&S[r.v.key].cur<=0).length,low=reorderCount();
+  let bk;
+  if(!D.lastBackup)bk='<div class="warn">No backup yet. A backup is a saved copy of your data. Take one in the Account tab.</div>';
+  else{const days=Math.floor((Date.now()-D.lastBackup)/86400000);bk='<div class="'+(days>=7?'warn':'good')+'">Last backup was '+(days===0?'today':days+' day'+(days===1?'':'s')+' ago')+'.</div>'}
+  const todayAmt=D.entries.reduce((a,e)=>a+(e.type==='sale'&&e.date===t?saleAmt(e):0),0);
+  const noPrice=D.items.filter(i=>!i.prices.length).length;
+  const kc=(go,l,v,sub,cls)=>'<button type="button" class="stat" data-a="statGo" data-id="'+go+'"><span>'+l+'</span><b class="'+(cls||'')+'">'+v+'</b><em>'+sub+'</em></button>';
+  page('<div class="card"><h2>Dashboard</h2><p class="lede">Your shop at a glance. Tap a card to see the details.</p>'+
+  '<div class="stats">'+
+  kc('stock','Stock in hand',fmtT(tot),'View stock ›')+
+  kc('today','Sold today',fmtT(sd),'View today\'s sales ›')+
+  '<button type="button" class="stat" data-a="go" data-id="sales"><span>Sales today</span><b>'+rs(todayAmt)+'</b><em>Open Sales ₹ ›</em></button>'+
+  kc('reorder','Need reordering',low,'View list ›',low?'err':'')+'</div>'+
+  '<div class="row"><button class="btn big" style="margin:0;flex:1" data-a="go" data-id="sale">Record a sale</button><button class="btn sec" style="flex:1;min-height:50px" data-a="go" data-id="addstock">Add stock</button></div>'+
+  (noPrice?'<div class="warn">'+noPrice+(noPrice===1?' size has':' sizes have')+' no price yet, so their sales show ₹0. Set prices in Manage, then ₹ Prices. <button class="btn sm" style="margin-left:6px" data-a="go" data-id="manage">Open Manage</button></div>':'')+bk+
+  '<details class="more"><summary>More numbers</summary><div class="stats">'+
+  kc('stock','Total items',D.items.length,'View ›')+kc('month','Sold this month',fmtT(sm),'View ›')+kc('year','Sold this year',fmtT(sy),'View ›')+kc('reorder','Out of stock',out,'View ›',out?'err':'')+
+  '</div></details></div>'+
+  '<div class="card"><h3>Look up stock and sales</h3><p class="lede" style="margin-bottom:10px">Choose a subcategory, size or color to see how many coils are left and how many were sold today, this month and this year.</p><div class="g3">'+
+  '<label>Subcategory<select id="dsub"><option value="">All subcategories</option>'+D.subs.map(x=>'<option value="'+x.id+'"'+(DF.sub===x.id?' selected':'')+'>'+esc(x.name)+'</option>').join('')+'</select></label>'+
+  '<label>Size<select id="dsz"><option value="">All sizes</option>'+[...new Set(D.items.map(i=>i.name))].map(n=>'<option value="'+esc(n)+'"'+(DF.size===n?' selected':'')+'>'+esc(n)+'</option>').join('')+'</select></label>'+
+  '<label>Color<select id="dcol"><option value="">All colors</option>'+[...new Set([].concat(...D.items.map(i=>i.colors)))].map(c=>'<option value="'+esc(c)+'"'+(DF.color===c?' selected':'')+'>'+esc(c)+'</option>').join('')+'</select></label></div>'+
+  '<div id="dstrip"></div><div class="tw" id="dtbl"></div></div>');
+  $('#dsub').onchange=e=>{DF.sub=e.target.value;drawDash()};
+  $('#dsz').onchange=e=>{DF.size=e.target.value;drawDash()};
+  $('#dcol').onchange=e=>{DF.color=e.target.value;drawDash()};
+  drawDash();
+}
+function drawDash(){
+  const S=stats(),t=today(),mo=t.slice(0,7),yr=t.slice(0,4),sold={};
+  D.entries.forEach(e=>{
+    if(e.type!=='sale')return;
+    const k=vk(e.itemId,e.color),o=sold[k]=sold[k]||{d:0,m:0,y:0};
+    if(e.date===t)o.d+=e.qty;
+    if(e.date.slice(0,7)===mo)o.m+=e.qty;
+    if(e.date.slice(0,4)===yr)o.y+=e.qty;
+  });
+  const items=D.items.filter(i=>(!DF.sub||i.subId===DF.sub)&&(!DF.size||i.name===DF.size));
+  const rows=rowsOf(items).filter(r=>{
+    if(DF.color&&r.v.color!==DF.color)return false;
+    if(isLegacy(r.i,r.v)&&S[r.v.key].cur===0&&!(sold[r.v.key]&&sold[r.v.key].y))return false;
+    return true;
+  });
+  if(!rows.length){$('#dstrip').innerHTML='';$('#dtbl').innerHTML='<p class="mut">Nothing matches these filters.</p>';return}
+  const Z=()=>({a:newT(),d:newT(),m:newT(),y:newT()}),G=Z();
+  const add=(T,s,mpc)=>{addT(T.a,s.cur,mpc);addT(T.d,s.d,mpc);addT(T.m,s.m,mpc);addT(T.y,s.y,mpc)};
+  const q=(v,i)=>v?fmtQ(v,i):'0';
+  let h='<table><thead><tr><th>Subcategory / size / color</th><th>Available</th><th>Sold today</th><th>Sold this month</th><th>Sold this year</th></tr></thead><tbody>';
+  groups(rows).forEach(g=>{
+    g.subs.forEach(sg=>{
+      const B=Z();
+      h+='<tr class="subh"><td colspan="5">'+esc(g.cat.name)+' › '+esc(sg.sub.name)+'</td></tr>';
+      sg.rows.forEach(r=>{
+        const i=r.i,st=S[r.v.key],so=sold[r.v.key]||{d:0,m:0,y:0},s={cur:st.cur,d:so.d,m:so.m,y:so.y};
+        add(B,s,i.mpc||0);
+        const leg=isLegacy(i,r.v),out=!leg&&st.cur<=0,low=!leg&&!out&&needsOrder(i,st.cur);
+        h+='<tr class="'+(out?'out':low?'low':'')+'"><td>'+rowName(r)+'</td><td><b>'+fmtQ(st.cur,i)+'</b></td><td>'+q(s.d,i)+'</td><td>'+q(s.m,i)+'</td><td>'+q(s.y,i)+'</td></tr>';
+      });
+      h+='<tr class="subt"><td>Subtotal: '+esc(sg.sub.name)+'</td><td>'+fmtT(B.a)+'</td><td>'+fmtT(B.d)+'</td><td>'+fmtT(B.m)+'</td><td>'+fmtT(B.y)+'</td></tr>';
+      ['a','d','m','y'].forEach(k=>mergeT1(G[k],B[k]));
+    });
+  });
+  h+='<tr class="grand"><td>TOTAL (as filtered)</td><td>'+fmtT(G.a)+'</td><td>'+fmtT(G.d)+'</td><td>'+fmtT(G.m)+'</td><td>'+fmtT(G.y)+'</td></tr></tbody></table>';
+  $('#dstrip').innerHTML='<div class="info">Available: <b>'+fmtT(G.a)+'</b> &middot; Sold today: <b>'+fmtT(G.d)+'</b> &middot; This month: <b>'+fmtT(G.m)+'</b> &middot; This year: <b>'+fmtT(G.y)+'</b></div>';
+  $('#dtbl').innerHTML=h;
+}
+
+/* ---------- stock table ---------- */
+function pgStock(){
+  const sizes=[...new Set(D.items.map(i=>i.name))];
+  page('<div class="card"><h2>Stock</h2><p class="lede">How many coils you have right now, size by size and color by color. Red rows are out of stock, yellow rows are low.</p><div class="g2"><label>Search<input id="sq" value="'+esc(FS.q)+'" placeholder="Search item, size, color, company..."></label><label>Size / item name<select id="sz"><option value="">All sizes</option>'+sizes.map(s=>'<option'+(s===FS.size?' selected':'')+'>'+esc(s)+'</option>').join('')+'</select></label></div>'+pickerHTML('f',true,true)+'</div><div class="card"><div class="tw" id="stbl"></div></div>');
+  $('#sq').oninput=e=>{FS.q=e.target.value;drawStock()};
+  $('#sz').onchange=e=>{FS.size=e.target.value;drawStock()};
+  wirePicker('f',true,true,()=>{FS.cat=$('#fc').value;FS.sub=$('#fs').value;FS.color=$('#fcol').value;drawStock()},{cat:FS.cat,sub:FS.sub,color:FS.color});
+}
+function drawStock(){
+  const S=stats(),q=FS.q.trim().toLowerCase();
+  const items=D.items.filter(i=>{
+    const sb=subById(i.subId)||{},ct=catById(sb.catId)||{};
+    if(FS.cat&&ct.id!==FS.cat)return false;
+    if(FS.sub&&i.subId!==FS.sub)return false;
+    if(FS.size&&i.name!==FS.size)return false;
+    return true;
+  });
+  const rows=rowsOf(items).filter(r=>{
+    const st=S[r.v.key],sb=subById(r.i.subId)||{},ct=catById(sb.catId)||{};
+    if(FS.color&&r.v.color!==FS.color)return false;
+    if(isLegacy(r.i,r.v)&&st.cur===0)return false;
+    return !q||(ct.name+' '+sb.name+' '+rowText(r)).toLowerCase().includes(q);
+  });
+  if(!rows.length){$('#stbl').innerHTML='<div class="empty"><b>No wires to show</b>Nothing matches your search, or no wires are added yet.<br><button class="btn" data-a="go" data-id="manage">Open Manage</button></div>';return}
+  let h='<table><thead><tr><th>Item</th><th>Total Stock Added</th><th>Total Sold</th><th>Adjusted (net)</th><th>Current Stock Available</th><th>Status</th></tr></thead><tbody>';
+  const G=T4();
+  groups(rows).forEach(g=>{
+    const C=T4();
+    h+='<tr class="grp"><td colspan="6">'+esc(g.cat.name)+'</td></tr>';
+    g.subs.forEach(sg=>{
+      const B=T4();
+      h+='<tr class="subh"><td colspan="6">'+esc(sg.sub.name)+'</td></tr>';
+      sg.rows.forEach(r=>{
+        const i=r.i,s=S[r.v.key];addRow(B,s,i);
+        const leg=isLegacy(i,r.v),out=!leg&&s.cur<=0,low=!leg&&!out&&needsOrder(i,s.cur);
+        h+='<tr class="'+(out?'out':low?'low':'')+'"><td>'+rowName(r)+'</td><td>'+fmtQ(s.tot,i)+'</td><td>'+(s.sold?fmtQ(s.sold,i):'0')+'</td><td>'+(s.adj?(s.adj>0?'+':'-')+fmtQ(Math.abs(s.adj),i):'0')+'</td><td><b>'+fmtQ(s.cur,i)+'</b></td><td>'+(out?'<span class="tag r">OUT OF STOCK</span>':low?'<span class="tag r">LOW</span>':'<span class="tag g">OK</span>')+'</td></tr>';
+      });
+      h+='<tr class="subt"><td>Subtotal: '+esc(sg.sub.name)+'</td><td>'+fmtT(B.a)+'</td><td>'+fmtT(B.s)+'</td><td>'+fmtT(B.j)+'</td><td>'+fmtT(B.c)+'</td><td></td></tr>';
+      mergeT(C,B);
+    });
+    h+='<tr class="cat-t"><td>Total: '+esc(g.cat.name)+'</td><td>'+fmtT(C.a)+'</td><td>'+fmtT(C.s)+'</td><td>'+fmtT(C.j)+'</td><td>'+fmtT(C.c)+'</td><td></td></tr>';
+    mergeT(G,C);
+  });
+  h+='<tr class="grand"><td>ALL ITEMS</td><td>'+fmtT(G.a)+'</td><td>'+fmtT(G.s)+'</td><td>'+fmtT(G.j)+'</td><td>'+fmtT(G.c)+'</td><td></td></tr></tbody></table>';
+  $('#stbl').innerHTML=h;
+}
+
+/* ---------- add sale / stock / adjust ---------- */
+const REASONS=['Damaged','Counting mistake','Returned by customer','Returned to supplier','Lost','Other'];
+function pgEntry(kind){
+  const title={sale:'Record a Sale',stock:'Add Stock',adj:'Adjust Stock'}[kind];
+  if(!D.items.length){page('<div class="card"><h2>'+title+'</h2><div class="empty"><b>Nothing to choose from yet</b>Add your wires first: category, subcategory and sizes.<br><button class="btn" data-a="go" data-id="manage">Go to Manage</button></div></div>');return}
+  const LEDE={sale:'Use this every time you sell wire. Stock goes down and the amount is counted in Sales ₹.',stock:'Use this when new coils arrive. Stock goes up. If the price has changed, enter the new MRP and discount in step 3.',adj:'Use this only to fix mistakes such as damaged or lost coils, or a wrong count. Do not use it for sales or new stock.'};
+  const NOTEH={sale:'Customer or contractor name. It helps you find this sale later in History.',stock:'Supplier name or bill number, if you want to remember it.',adj:'Write what happened. Needed when the reason is Other.'};
+  const n2=kind==='adj'?3:2;
+  page('<div class="card"><h2>'+title+'</h2><p class="lede">'+LEDE[kind]+'</p>'+
+  '<div class="step"><i>1</i>Choose the wire</div>'+pickerHTML('p',false,false)+'<div id="pcur" class="info"></div>'+
+  (kind==='adj'?'<div class="step"><i>2</i>What happened?</div><div class="g2"><label>Increase or decrease?<select id="pdir"><option value="in">Increase</option><option value="out">Decrease</option></select><span class="hint">Increase adds coils to stock. Decrease removes coils.</span></label><label>Reason<select id="prs">'+REASONS.map(r=>'<option>'+r+'</option>').join('')+'</select><span class="hint">Pick the closest reason. If you pick Other, write a note.</span></label></div>':'')+
+  '<div class="step"><i>'+n2+'</i>'+(kind==='sale'?'How many coils did you sell?':kind==='stock'?'How many coils came in?':'How many coils?')+'</div>'+
+  '<div class="g2"><label>Quantity (coils)'+qtyHTML('p')+'<span class="hint">Whole coils. Use 0.5 for half a coil.</span></label><label>Date<input type="date" id="pd" value="'+today()+'"><span class="hint">Today by default. Change it only to enter an older record.</span></label></div>'+
+  (kind==='stock'?'<div class="step"><i>3</i>Price of these coils</div><div class="g3"><label>MRP per coil (₹)<input id="pmrp" type="number" min="0" step="any" inputmode="decimal"><span class="hint">The maximum retail price of one coil.</span></label><label>Discount %<input id="pdisc" type="number" min="0" max="100" step="any" inputmode="decimal"><span class="hint">Your discount off the MRP.</span></label><label>Net rate per coil (₹)<input id="prate" readonly><span class="hint">MRP minus discount. This is the selling rate counted in Sales ₹.</span></label></div><p class="mut small" id="pnote"></p>':'')+
+  '<div class="step"><i>'+(kind==='stock'?4:n2+1)+'</i>Note (optional)</div><label><input id="pn" maxlength="200"><span class="hint">'+NOTEH[kind]+'</span></label>'+
+  '<div id="pmsg"></div><button class="btn big" id="psave" type="button">'+({sale:'Save sale',stock:'Add stock',adj:'Save adjustment'}[kind])+'</button></div>');
+  let lastPI='';
+  const netUpd=()=>{const m=parseFloat($('#pmrp').value)||0,d=parseFloat($('#pdisc').value)||0;$('#prate').value=m>0?r2(m*(1-d/100)):''};
+  const fillPrice=it=>{
+    if(!it||it.id===lastPI)return;lastPI=it.id;
+    const cp=it.prices.length?it.prices[it.prices.length-1]:null;
+    $('#pmrp').value=cp?cp.mrp:'';$('#pdisc').value=cp?cp.disc:'';netUpd();
+    $('#pnote').textContent=cp?'Current price: '+rs(cp.rate)+' per coil. Change the boxes only if the price changed. A new price applies to this size in all colors.':'No price set for this size yet. Enter MRP and discount to see sales in rupees.';
+  };
+  if(kind==='stock'){$('#pmrp').oninput=netUpd;$('#pdisc').oninput=netUpd}
+  const upd=()=>{
+    const it=pickedItem('p');syncUnit('p',it,kind==='stock'?'coils':'meters');if(kind==='stock')fillPrice(it);
+    let t='Please choose an item.';
+    if(it){
+      const S=stats();
+      if(it.colors.length){
+        const c=$('#pcol').value;
+        if(c!=='#'){const st=S[vk(it.id,c)];t='Current stock'+(c?' ('+esc(c)+')':' (old stock, no color)')+': <b>'+fmtQ(st?st.cur:0,it)+'</b>'}
+        else t='Current stock by color:<br>'+variants(it).map(v=>sw(v.color)+esc(v.label)+': <b>'+fmtQ(S[v.key].cur,it)+'</b>').join('<br>');
+      }else t='Current stock: <b>'+fmtQ(S[it.id].cur,it)+'</b>';
+    }
+    $('#pcur').innerHTML=t;
+  };
+  wirePicker('p',false,false,upd,{kind:kind});
+  $('#psave').onclick=()=>{
+    const it=pickedItem('p'),out=$('#pmsg'),date=$('#pd').value,note=$('#pn').value.trim();
+    if(!it)return msg(out,'Please choose a category, subcategory and item.');
+    let col='';
+    if(it.colors.length){col=$('#pcol').value;if(col==='#')return msg(out,'Please choose a color.')}
+    if(!date)return msg(out,'Please choose a date.');
+    const q=readQty('p',it);if(q===null)return msg(out,QERR);
+    const cur=(stats()[vk(it.id,col)]||{cur:0}).cur;
+    const e={id:uid(),type:kind,itemId:it.id,color:col,snap:snapOf(it,col),qty:q,date,note,ts:Date.now()};
+    if(kind==='sale'){
+      e.rate=rateAt(it,date);
+      if(q>cur)return msg(out,'Not enough stock! Only '+fmtQ(cur,it)+' available, but you tried to sell '+fmtQ(q,it)+'.');
+    }
+    if(kind==='adj'){
+      e.dir=$('#pdir').value;e.reason=$('#prs').value;
+      if(e.reason==='Other'&&!note)return msg(out,'Please write a note when the reason is Other.');
+      if(e.dir==='out'&&q>cur)return msg(out,'Cannot decrease by '+fmtQ(q,it)+'. Only '+fmtQ(cur,it)+' in stock.');
+    }
+    let pr=null;
+    if(kind==='stock'){const mrp=parseFloat($('#pmrp').value),dc=parseFloat($('#pdisc').value)||0;if(mrp>0){if(dc<0||dc>100)return msg(out,'Discount must be between 0 and 100.');e.mrp=mrp;e.disc=dc;pr=[mrp,dc]}}
+    D.entries.push(e);saveEntry(e);
+    if(pr&&setPrice(it,date,pr[0],pr[1])){save();lastPI=''}
+    $('#pq').value='';$('#pn').value='';
+    upd();buildNav();
+    const sn=snapOf(it,col),what=sn.sub+' '+nameOf(sn),left=fmtQ((stats()[vk(it.id,col)]||{cur:0}).cur,it),coils=it.mpc>0?q/it.mpc:q,rt=rateAt(it,date);
+    let mt;
+    if(kind==='sale')mt='Saved. Sold '+fmtQ(q,it)+' of '+what+(rt>0?' at '+rs(rt)+' each = '+rs(coils*rt):'. No price is set for this size yet, so Sales ₹ shows ₹0. Set it in Manage, then ₹ Prices')+'. Stock left: '+left+'.';
+    else if(kind==='stock')mt='Saved. Added '+fmtQ(q,it)+' of '+what+'. Stock now: '+left+'.';
+    else mt='Saved. Stock of '+what+' '+(e.dir==='in'?'increased':'decreased')+' by '+fmtQ(q,it)+'. Stock now: '+left+'.';
+    msg(out,mt,true);
+  };
+}
+
+/* ---------- reorder ---------- */
+let SF={fy:'',cat:'',sub:'',size:'',color:'',per:'fy',view:'Subcategory'};
+const fyOf=d=>{const y=+d.slice(0,4),m=+d.slice(5,7);return m>=4?y:y-1};
+const fyLab=n=>n+'-'+String(n+1).slice(2);
+const qOf=d=>{const m=+d.slice(5,7);return m>=4&&m<=6?1:m>=7&&m<=9?2:m>=10&&m<=12?3:4};
+const shortRs=n=>n>=100000?(n/100000).toFixed(1)+'L':n>=1000?Math.round(n/1000)+'k':String(Math.round(n));
+function saleAmt(e){
+  const it=liveOf(e),sn=infoOf(e),mpc=(it?it.mpc:sn.mpc)||0,coils=mpc>0?e.qty/mpc:e.qty;
+  return coils*(it?rateAt(it,e.date):(e.rate!=null?e.rate:(sn.rate||0)));
+}
+function saleRows(){
+  const out=[];
+  D.entries.forEach(e=>{
+    if(e.type!=='sale')return;
+    const sn=infoOf(e),it=liveOf(e);
+    if(SF.cat&&sn.catId!==SF.cat)return;
+    if(SF.sub&&sn.subId!==SF.sub)return;
+    if(SF.size&&sn.name!==SF.size)return;
+    if(SF.color&&(e.color||'')!==SF.color)return;
+    const mpc=(it?it.mpc:sn.mpc)||0,coils=mpc>0?e.qty/mpc:e.qty,rate=it?rateAt(it,e.date):(e.rate!=null?e.rate:(sn.rate||0));
+    out.push({date:e.date,coils,amt:coils*rate,cat:sn.cat,sub:sn.sub,size:sn.name,color:e.color||'',nop:rate===0});
+  });
+  return out;
+}
+function pgSales(){
+  if(!SF.fy)SF.fy=String(fyOf(today()));
+  const fys=new Set([fyOf(today())]);D.entries.forEach(e=>{if(e.type==='sale'&&e.date)fys.add(fyOf(e.date))});
+  const sizes=[...new Set(D.items.map(i=>i.name))];
+  page('<div class="card"><h2>Sales in rupees</h2><p class="lede">How much money your sales made. Each sale is counted at the net rate of its day. Use the filters to look at one wire, size or color.</p>'+pickerHTML('sl',true,true)+
+  '<div class="g2"><label>Financial year (April to March)<select id="slfy">'+[...fys].sort().reverse().map(y=>'<option value="'+y+'"'+(String(y)===SF.fy?' selected':'')+'>'+fyLab(y)+'</option>').join('')+'</select></label>'+
+  '<label>Size<select id="slsz"><option value="">All sizes</option>'+sizes.map(n=>'<option value="'+esc(n)+'"'+(SF.size===n?' selected':'')+'>'+esc(n)+'</option>').join('')+'</select></label></div>'+
+  '<div id="skp" class="kpis"></div><div id="smiss"></div></div>'+
+  '<div class="card"><h3>Sales by month</h3><div id="sbar"></div><h3>Sales by quarter</h3><div id="sq" class="kpis"></div><h3>Sales by year</h3><div class="tw" id="sy"></div></div>'+
+  '<div class="card"><h3>Breakdown</h3><div class="g2"><label>Period<select id="slper"><option value="day">Today</option><option value="month">This month</option><option value="quarter">This quarter</option><option value="fy">Selected financial year</option><option value="all">All time</option></select></label><div></div></div>'+
+  '<div class="chips" id="stabs"></div><div class="tw" id="sbk"></div></div>');
+  wirePicker('sl',true,true,()=>{SF.cat=$('#slc').value;SF.sub=$('#sls').value;SF.color=$('#slcol').value;drawSales()},{cat:SF.cat,sub:SF.sub,color:SF.color});
+  $('#slfy').onchange=e=>{SF.fy=e.target.value;drawSales()};
+  $('#slsz').onchange=e=>{SF.size=e.target.value;drawSales()};
+  $('#slper').value=SF.per;$('#slper').onchange=e=>{SF.per=e.target.value;drawSales()};
+}
+function drawSales(){
+  const rows=saleRows(),t=today(),fyS=+SF.fy,tf=fyOf(t),tq=qOf(t);
+  const sum=f=>{let a=0,c=0;rows.forEach(r=>{if(f(r)){a+=r.amt;c+=r.coils}});return{a,c}};
+  const kp=(l,x)=>'<div><span>'+l+'</span><b>'+rs(x.a)+'</b><span>'+r2(x.c)+(x.c===1?' coil':' coils')+'</span></div>';
+  $('#skp').innerHTML=kp('Today',sum(r=>r.date===t))+kp('This month',sum(r=>r.date.slice(0,7)===t.slice(0,7)))+kp('This quarter',sum(r=>fyOf(r.date)===tf&&qOf(r.date)===tq))+kp('This financial year',sum(r=>fyOf(r.date)===tf));
+  const miss=[...new Set(rows.filter(r=>r.nop).map(r=>r.sub+' › '+r.size))];
+  $('#smiss').innerHTML=miss.length?'<div class="warn">Set a price (Manage, then ₹ Prices) for: '+miss.map(esc).join(', ')+'. Their sales show as ₹0 for now.</div>':'';
+  const mo=[];for(let i=0;i<12;i++){const m=((3+i)%12)+1,y=m>=4?fyS:fyS+1;mo.push({k:y+'-'+String(m).padStart(2,'0'),l:MON[m-1]})}
+  const mt={};rows.forEach(r=>{const k=r.date.slice(0,7);mt[k]=(mt[k]||0)+r.amt});
+  const mx=Math.max(1,...mo.map(m=>mt[m.k]||0));
+  $('#sbar').innerHTML='<div class="sbars">'+mo.map(m=>{const v=mt[m.k]||0;return'<div><span>'+(v?shortRs(v):'')+'</span><i style="height:'+Math.round(v/mx*96)+'px"></i></div>'}).join('')+'</div><div class="slab">'+mo.map(m=>'<div>'+m.l+'</div>').join('')+'</div>';
+  const QL=['Apr-Jun','Jul-Sep','Oct-Dec','Jan-Mar'];
+  $('#sq').innerHTML=QL.map((l,i)=>kp('Q'+(i+1)+' ('+l+')',sum(r=>fyOf(r.date)===fyS&&qOf(r.date)===i+1))).join('');
+  const ym={};rows.forEach(r=>{const y=fyOf(r.date);ym[y]=ym[y]||{a:0,c:0};ym[y].a+=r.amt;ym[y].c+=r.coils});
+  const ys=Object.keys(ym).sort().reverse();
+  $('#sy').innerHTML=ys.length?'<table><thead><tr><th>Financial year</th><th>Coils sold</th><th>Sales (₹)</th></tr></thead><tbody>'+ys.map(y=>'<tr><td>'+fyLab(+y)+'</td><td>'+r2(ym[y].c)+'</td><td><b>'+rs(ym[y].a)+'</b></td></tr>').join('')+'</tbody></table>':'<p class="mut">No sales yet.</p>';
+  const inP=r=>SF.per==='day'?r.date===t:SF.per==='month'?r.date.slice(0,7)===t.slice(0,7):SF.per==='quarter'?(fyOf(r.date)===tf&&qOf(r.date)===tq):SF.per==='fy'?fyOf(r.date)===fyS:true;
+  const V={Subcategory:r=>r.sub,Size:r=>r.size,Color:r=>r.color||'No color',Product:r=>r.sub+' · '+r.size,Category:r=>r.cat};
+  $('#stabs').innerHTML=Object.keys(V).map(k=>'<button type="button" class="chip" style="'+(SF.view===k?'background:var(--hd);font-weight:700':'')+'" data-a="sview" data-id="'+k+'">'+k+'</button>').join('');
+  const g={};let tot=0;rows.filter(inP).forEach(r=>{const k=V[SF.view](r);g[k]=g[k]||{a:0,c:0};g[k].a+=r.amt;g[k].c+=r.coils;tot+=r.amt});
+  const ks=Object.keys(g).sort((a,b)=>g[b].a-g[a].a);
+  $('#sbk').innerHTML=ks.length?'<table><thead><tr><th>'+SF.view+'</th><th>Coils sold</th><th>Sales (₹)</th><th>Share</th></tr></thead><tbody>'+ks.map(k=>{const pc=tot>0?Math.round(g[k].a/tot*100):0;return'<tr><td>'+(SF.view==='Color'?sw(k):'')+esc(k)+'</td><td>'+r2(g[k].c)+'</td><td>'+rs(g[k].a)+'</td><td><span class="shbar"><i style="width:'+pc+'%"></i></span>'+pc+'%</td></tr>'}).join('')+'<tr class="grand"><td>Total</td><td>'+r2(ks.reduce((a,k)=>a+g[k].c,0))+'</td><td>'+rs(tot)+'</td><td></td></tr></tbody></table>':'<p class="mut">No sales in this period.</p>';
+}
+App.sview=id=>{SF.view=id;drawSales()};
+function reorderRows(){
+  const S=stats();
+  return rowsOf(D.items).filter(r=>!isLegacy(r.i,r.v)&&needsOrder(r.i,S[r.v.key].cur)).filter(r=>{
+    if(RF.cat&&catOfSub(r.i.subId)!==RF.cat)return false;
+    if(RF.sub&&r.i.subId!==RF.sub)return false;
+    if(RF.color&&r.v.color!==RF.color)return false;return true;
+  }).map(r=>({i:r.i,v:r.v,cur:S[r.v.key].cur,need:Math.max(0,r2((r.i.target||0)-S[r.v.key].cur))})).sort((a,b)=>{
+    const za=a.cur<=0?0:1,zb=b.cur<=0?0:1;if(za!==zb)return za-zb;
+    const ra=a.i.low>0?a.cur/a.i.low:0,rb=b.i.low>0?b.cur/b.i.low:0;return ra-rb;
+  });
+}
+function reorderText(){
+  const rows=reorderRows();
+  let t='Reorder List - '+acct.shop+' - '+fd(today())+'\n';
+  rows.forEach((r,n)=>{const p=snapOf(r.i,r.v.color);t+=(n+1)+'. '+p.cat+' > '+p.sub+' > '+nameOf(p)+': have '+fmtQ(r.cur,r.i)+'; order '+(r.need>0?fmtQ(r.need,r.i):'(set target stock)')+'\n'});
+  return t;
+}
+function pgReorder(){
+  page('<div class="card"><h2>Reorder List</h2><p class="lede">Wires that are finished or running low, so you know what to order. The most urgent are at the top.</p>'+pickerHTML('o',true,true)+
+  '<div class="row noprint"><button class="btn sm" data-a="rCopy">Copy as text</button><button class="btn sm" data-a="rWa">Share on WhatsApp</button><button class="btn sm sec" data-a="rCsv">Export CSV</button><button class="btn sm sec" data-a="rPrint">Print</button></div><div class="tw" id="otbl"></div></div>');
+  wirePicker('o',true,true,()=>{RF.cat=$('#oc').value;RF.sub=$('#os').value;RF.color=$('#ocol').value;drawReorder()},{cat:RF.cat,sub:RF.sub,color:RF.color});
+}
+function drawReorder(){
+  const rows=reorderRows();
+  if(!rows.length){$('#otbl').innerHTML='<div class="good">Nothing to reorder right now.</div>';return}
+  $('#otbl').innerHTML='<table><thead><tr><th>#</th><th>Category</th><th>Subcategory</th><th>Item</th><th>Current stock</th><th>Low-stock limit</th><th>Suggested order</th></tr></thead><tbody>'+
+  rows.map((r,n)=>{const p=snapOf(r.i);return '<tr class="'+(r.cur<=0?'out':'low')+'"><td>'+(n+1)+'</td><td>'+esc(p.cat)+'</td><td>'+esc(p.sub)+'</td><td>'+rowName(r)+'</td><td>'+fmtQ(r.cur,r.i)+'</td><td>'+fmtQ(r.i.low||0,r.i)+'</td><td>'+(r.need>0?'<b>'+fmtQ(r.need,r.i)+'</b>':'<span class="mut">set a target stock</span>')+'</td></tr>'}).join('')+'</tbody></table>';
+}
+App.rCopy=()=>{
+  const t=reorderText();
+  if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(t).then(()=>toast('Copied to clipboard'),()=>fallbackCopy(t));
+  else fallbackCopy(t);
+};
+function fallbackCopy(t){
+  const ta=document.createElement('textarea');ta.value=t;document.body.appendChild(ta);ta.select();
+  try{document.execCommand('copy');toast('Copied to clipboard')}catch(e){toast('Could not copy')}
+  ta.remove();
+}
+App.rWa=()=>window.open('https://wa.me/?text='+encodeURIComponent(reorderText()),'_blank');
+App.rCsv=()=>{
+  const rows=[['Category','Subcategory','Item','Color','Current stock (coils)','Low-stock limit (coils)','Suggested order (coils)']];
+  reorderRows().forEach(r=>{const p=snapOf(r.i);rows.push([p.cat,p.sub,p.name,r.v.color,rawU(r.cur,r.i),rawU(r.i.low||0,r.i),r.need>0?rawU(r.need,r.i):''])});
+  download('reorder-list-'+today()+'.csv','﻿'+csvText(rows),'text/csv');
+};
+App.rPrint=()=>window.print();
+
+/* ---------- reports ---------- */
+const UNITS={c:'Coils'};
+function rRange(){
+  const d=R.date||today();
+  if(R.period==='day')return[d,d];
+  if(R.period==='month')return[d.slice(0,7)+'-01',d.slice(0,7)+'-31'];
+  return[d.slice(0,4)+'-01-01',d.slice(0,4)+'-12-31'];
+}
+function rLabel(){
+  const d=R.date||today();
+  if(R.period==='day')return fd(d);
+  if(R.period==='month')return MON[+d.slice(5,7)-1]+' '+d.slice(0,4);
+  return d.slice(0,4);
+}
+/* show a quantity as: coils + meters, meters only, or coils only */
+function fmtU(q,it,u){
+  q=r2(q||0);const mpc=it&&it.mpc>0?it.mpc:0;
+  if(!mpc)return q+' '+((it&&it.unit)||'pcs');
+  if(u==='m')return q+' m';
+  if(u==='c'){const c=r2(q/mpc);return c+' '+(it.unit||'coil')+(Math.abs(c)===1?'':'s')}
+  return fmtQ(q,it);
+}
+const newR=()=>({m:0,p:0,mp:new Set()});
+function addR(T,q,it){if(it.mpc>0){T.m=r2(T.m+q/it.mpc);T.mp.add(it.mpc)}else T.p=r2(T.p+q)}
+function mergeR(T,U){T.m=r2(T.m+U.m);T.p=r2(T.p+U.p);U.mp.forEach(x=>T.mp.add(x))}
+function fmtR(T){
+  const a=[];
+  if(T.m)a.push(T.m.toLocaleString()+(Math.abs(T.m)===1?' coil':' coils'));
+  if(T.p)a.push(T.p.toLocaleString()+' pcs');
+  return a.join(' + ')||'0';
+}
+const newG=()=>({a:newR(),s:newR(),c:newR()});
+const mergeG=(T,U)=>{mergeR(T.a,U.a);mergeR(T.s,U.s);mergeR(T.c,U.c)};
+function pgReports(){
+  if(!R.date)R.date=today();
+  R.show=R.show||'both';R.unit='c';if(R.active===undefined)R.active=true;
+  const seg=(items,cur,act)=>'<div class="seg">'+items.map(x=>'<button type="button" data-a="'+act+'" data-id="'+x[0]+'" class="'+(cur===x[0]?'on':'')+'">'+x[1]+'</button>').join('')+'</div>';
+  const dateIn=R.period==='day'?'<label>Date<input type="date" id="rd" value="'+R.date+'"></label>':R.period==='month'?'<label>Month<input type="month" id="rd" value="'+R.date.slice(0,7)+'"></label>':'<label>Year<input type="number" id="rd" min="2000" max="2100" value="'+R.date.slice(0,4)+'"></label>';
+  page('<div class="card noprint"><h2>Reports</h2><p class="lede">See what was added and sold in a day, month or year. You can print it or save it as a file.</p>'+
+  '<label>Report for'+seg([['day','Day'],['month','Month'],['year','Year']],R.period,'rPer')+'</label>'+
+  '<div class="g2">'+dateIn+'</div>'+
+  '<label>What to show'+seg([['both','Added + Sold'],['sold','Sold only'],['added','Added only']],R.show,'rShow')+'</label>'+
+  pickerHTML('r',true,true)+
+  '<label class="chk"><input type="checkbox" id="ra"'+(R.active?' checked':'')+'>Only show items that had stock added or sold in this period</label>'+
+  '<div class="row"><button class="btn" data-a="rPrint">Print</button><button class="btn sec" data-a="rCsv2">Download for Excel (CSV)</button></div></div><div id="rout"></div>');
+  $('#ra').onchange=e=>{R.active=e.target.checked;drawReport()};
+  $('#rd').onchange=e=>{
+    const v=e.target.value,t=today();
+    if(R.period==='day')R.date=v||t;
+    else if(R.period==='month')R.date=v?(v===t.slice(0,7)?t:v+'-01'):t;
+    else R.date=(v&&/^\d{4}$/.test(v))?(v===t.slice(0,4)?t:v+'-01-01'):t;
+    drawReport();
+  };
+  wirePicker('r',true,true,()=>{R.cat=$('#rc').value;R.sub=$('#rs').value;R.color=$('#rcol').value;drawReport()},{cat:R.cat,sub:R.sub,color:R.color});
+}
+App.rPer=id=>{R.period=id;pgReports()};
+App.rShow=id=>{R.show=id;pgReports()};
+function drawReport(){
+  const[a,b]=rRange(),label=rLabel(),u=R.unit,sA=R.show!=='sold',sS=R.show!=='added';
+  const close=stats({upTo:b}),open=stats({before:a});
+  const inF=i=>(!R.cat||catOfSub(i.subId)===R.cat)&&(!R.sub||i.subId===R.sub);
+  const matchE=e=>{if(R.color&&(e.color||'')!==R.color)return false;const it=liveOf(e);if(it)return inF(it);const s=e.snap||{};return(!R.cat||s.catId===R.cat)&&(!R.sub||s.subId===R.sub)};
+  const items=D.items.filter(inF),rows=rowsOf(items).filter(r=>!R.color||r.v.color===R.color);
+  const inP=e=>e.date>=a&&e.date<=b;
+  const add={},sold={},orph={};
+  D.entries.filter(e=>(e.type==='stock'||e.type==='sale')&&inP(e)&&matchE(e)).forEach(e=>{
+    const k=e.type==='stock'?'a':'s',ek=vk(e.itemId,e.color);
+    if(liveOf(e)){const m=k==='a'?add:sold;m[ek]=r2((m[ek]||0)+e.qty)}
+    else{const o=orph[ek]=orph[ek]||{snap:e.snap,a:0,s:0};o[k]=r2(o[k]+e.qty)}
+  });
+  const moved=r=>(sA&&add[r.v.key]>0)||(sS&&sold[r.v.key]>0);
+  const list=R.active?rows.filter(moved):rows;
+  const ncol=1+(sA?1:0)+(sS?1:0)+1;
+  const title={both:'Stock added and sold',sold:'Stock sold',added:'Stock added'}[R.show];
+  const csv=[[acct.shop],[title,R.period.toUpperCase(),label],['Quantities shown as',UNITS[u]],[],['Category','Subcategory','Item','Color'].concat(sA?['Added','Added (coils)']:[],sS?['Sold','Sold (coils)']:[],['Stock left at end','Stock left (coils)'])];
+  const csvRow=(c,s,n,col,ad,so,cur,it)=>csv.push([c,s,n,col].concat(sA?[ad?fmtU(ad,it,u):0,rawU(ad,it)]:[],sS?[so?fmtU(so,it,u):0,rawU(so,it)]:[],[cur===null?'':fmtU(cur,it,u),cur===null?'':rawU(cur,it)]));
+  const totTds=T=>(sA?'<td>'+fmtR(T.a,u)+'</td>':'')+(sS?'<td>'+fmtR(T.s,u)+'</td>':'')+'<td>'+fmtR(T.c,u)+'</td>';
+  const totCsv=(lab,T)=>csv.push([lab,'','',''].concat(sA?[fmtR(T.a,u),'']:[],sS?[fmtR(T.s,u),'']:[],[fmtR(T.c,u),'']));
+  let h='<div class="printhead"><h2>'+esc(acct.shop)+'</h2><div>'+esc(title)+' report: <b>'+esc(label)+'</b> &middot; Quantities as: '+esc(UNITS[u])+' &middot; Printed on '+esc(fd(today()))+'</div></div>';
+  const ok=Object.keys(orph);
+  if(!list.length&&!ok.length){
+    h+='<div class="card"><h3>'+esc(title)+' · '+esc(label)+'</h3><p class="mut">Nothing '+(R.show==='added'?'was added':R.show==='sold'?'was sold':'was added or sold')+' in this period. Try another date, or untick "Only show items that had stock added or sold".</p></div>';
+  }else{
+    h+='<div class="card"><h3>'+esc(title)+' &middot; '+esc(label)+'</h3><div class="tw"><table><thead><tr><th>Item</th>'+(sA?'<th>Stock added</th>':'')+(sS?'<th>Stock sold</th>':'')+'<th>Stock left (end of period)</th></tr></thead><tbody>';
+    const G=newG();
+    groups(list).forEach(g=>{
+      const C=newG();
+      h+='<tr class="grp"><td colspan="'+ncol+'">'+esc(g.cat.name)+'</td></tr>';
+      g.subs.forEach(sg=>{
+        const Bt=newG();
+        h+='<tr class="subh"><td colspan="'+ncol+'">'+esc(sg.sub.name)+'</td></tr>';
+        sg.rows.forEach(r=>{
+          const i=r.i,ad=add[r.v.key]||0,so=sold[r.v.key]||0,cur=close[r.v.key].cur;
+          addR(Bt.a,ad,i);addR(Bt.s,so,i);addR(Bt.c,cur,i);
+          h+='<tr class="'+(cur<=0&&!isLegacy(i,r.v)?'out':'')+'"><td>'+rowName(r)+'</td>'+(sA?'<td>'+(ad?fmtU(ad,i,u):'-')+'</td>':'')+(sS?'<td>'+(so?fmtU(so,i,u):'-')+'</td>':'')+'<td>'+fmtU(cur,i,u)+'</td></tr>';
+          csvRow(g.cat.name,sg.sub.name,i.name,r.v.color||r.v.label,ad,so,cur,i);
+        });
+        h+='<tr class="subt"><td>Subtotal: '+esc(sg.sub.name)+'</td>'+totTds(Bt)+'</tr>';
+        totCsv('Subtotal: '+sg.sub.name,Bt);
+        mergeG(C,Bt);
+      });
+      h+='<tr class="cat-t"><td>Total: '+esc(g.cat.name)+'</td>'+totTds(C)+'</tr>';
+      totCsv('Total: '+g.cat.name,C);
+      mergeG(G,C);
+    });
+    if(ok.length){
+      h+='<tr class="grp"><td colspan="'+ncol+'">Deleted items (past records kept)</td></tr>';
+      ok.forEach(k=>{
+        const o=orph[k],sn=o.snap;
+        addR(G.a,o.a,sn);addR(G.s,o.s,sn);
+        h+='<tr><td>'+esc((sn.cat||'')+' › '+(sn.sub||'')+' › '+nameOf(sn))+'</td>'+(sA?'<td>'+(o.a?fmtU(o.a,sn,u):'-')+'</td>':'')+(sS?'<td>'+(o.s?fmtU(o.s,sn,u):'-')+'</td>':'')+'<td class="mut">item deleted</td></tr>';
+        csvRow(sn.cat,sn.sub,(sn.name||'')+' (deleted)',sn.color||'',o.a,o.s,null,sn);
+      });
+    }
+    h+='<tr class="grand"><td>ALL ITEMS LISTED</td>'+totTds(G)+'</tr></tbody></table></div><p class="small mut">Stock left is counted at the end of the period, for the items listed.</p></div>';
+    totCsv('ALL ITEMS LISTED',G);
+  }
+  // out of stock
+  const bal={};rows.forEach(r=>bal[r.v.key]=open[r.v.key].cur);
+  const oos=[];
+  D.entries.filter(e=>inP(e)&&bal[vk(e.itemId,e.color)]!==undefined).sort((x,y)=>x.date<y.date?-1:x.date>y.date?1:x.ts-y.ts).forEach(e=>{
+    const bk=vk(e.itemId,e.color),before=bal[bk],d=(e.type==='stock'||(e.type==='adj'&&e.dir==='in'))?e.qty:-e.qty;
+    bal[bk]=r2(before+d);
+    if(before>0&&bal[bk]<=0)oos.push({i:itemById(e.itemId),c:e.color||'',date:e.date,still:close[bk].cur<=0});
+  });
+  h+='<div class="card"><h3>Items that went out of stock in this period</h3>';
+  csv.push([],['Went out of stock in period']);
+  if(!oos.length)h+='<p class="mut">None.</p>';
+  else{h+='<div class="tw"><table><thead><tr><th>Date</th><th>Item</th><th>Now</th></tr></thead><tbody>'+oos.map(o=>{const p=snapOf(o.i,o.c);csv.push([o.date,p.cat+' > '+p.sub+' > '+nameOf(p),o.still?'Still out of stock':'Restocked']);return '<tr><td>'+fd(o.date)+'</td><td>'+esc(p.cat+' › '+p.sub+' › '+nameOf(p))+'</td><td>'+(o.still?'<span class="tag r">Still out at end of period</span>':'<span class="tag g">Restocked</span>')+'</td></tr>'}).join('')+'</tbody></table></div>'}
+  h+='</div>';
+  // adjustments
+  const adjs=D.entries.filter(e=>e.type==='adj'&&inP(e)&&matchE(e)).sort((x,y)=>x.date<y.date?1:-1);
+  h+='<div class="card"><h3>Stock adjustments in this period (not counted as sales)</h3>';
+  csv.push([],['Adjustments in period'],['Date','Item','Change','Quantity','Reason','Note']);
+  if(!adjs.length)h+='<p class="mut">None.</p>';
+  else h+='<div class="tw"><table><thead><tr><th>Date</th><th>Item</th><th>Change</th><th>Reason</th><th>Note</th></tr></thead><tbody>'+adjs.map(e=>{const s=infoOf(e);csv.push([e.date,s.cat+' > '+s.sub+' > '+nameOf(s),e.dir==='in'?'Increase':'Decrease',fmtQ(e.qty,s),e.reason,e.note]);return '<tr><td>'+fd(e.date)+'</td><td>'+epath(e)+'</td><td>'+(e.dir==='in'?'+':'-')+fmtQ(e.qty,s)+'</td><td>'+esc(e.reason||'')+'</td><td>'+esc(e.note||'')+'</td></tr>'}).join('')+'</tbody></table></div>';
+  h+='</div>';
+  lastCSV=csv;
+  $('#rout').innerHTML=h;
+}
+App.rCsv2=()=>{if(!lastCSV.length)drawReport();download('report-'+R.period+'-'+(R.date||today())+'.csv','﻿'+csvText(lastCSV),'text/csv')};
+
+/* ---------- history ---------- */
+function pgHistory(){
+  page('<div class="card"><h2>History</h2><p class="lede">Every sale, stock entry and adjustment you saved. Open a record to fix or delete it.</p><div class="seg">'+[['sale','Sales'],['stock','Stock Added'],['adj','Adjustments']].map(k=>'<button type="button" data-a="hkind" data-id="'+k[0]+'" class="'+(H.kind===k[0]?'on':'')+'">'+k[1]+'</button>').join('')+'</div>'+
+  '<div class="g3"><label>From date<input type="date" id="hf" value="'+H.from+'"></label><label>To date<input type="date" id="ht" value="'+H.to+'"></label><label>Search<input id="hq" value="'+esc(H.q)+'" placeholder="item, color, note, reason..."></label></div><div class="row"><button class="btn sm sec" data-a="hclear">Clear filters</button></div><div id="hsum"></div><div class="tw" id="htbl"></div></div>');
+  $('#hf').onchange=e=>{H.from=e.target.value;drawHist()};
+  $('#ht').onchange=e=>{H.to=e.target.value;drawHist()};
+  $('#hq').oninput=e=>{H.q=e.target.value;drawHist()};
+  drawHist();
+}
+App.hkind=id=>{H.kind=id;pgHistory()};
+App.hclear=()=>{H.from=H.to=H.q='';pgHistory()};
+function drawHist(){
+  const q=H.q.trim().toLowerCase();
+  const list=D.entries.filter(e=>e.type===H.kind&&(!H.from||e.date>=H.from)&&(!H.to||e.date<=H.to)).filter(e=>{
+    if(!q)return true;const s=infoOf(e);return(s.cat+' '+s.sub+' '+nameOf(s)+' '+(e.note||'')+' '+(e.reason||'')).toLowerCase().includes(q);
+  }).sort((x,y)=>x.date<y.date?1:x.date>y.date?-1:y.ts-x.ts);
+  const T=newT();list.forEach(e=>addT(T,e.qty,infoOf(e).mpc||0));
+  $('#hsum').innerHTML='<p class="mut">'+list.length+' record'+(list.length===1?'':'s')+(H.kind!=='adj'?' · total '+fmtT(T):'')+'</p>';
+  if(!list.length){$('#htbl').innerHTML='<div class="empty"><b>No records found</b>Try a different date range or search.</div>';return}
+  const adj=H.kind==='adj';
+  $('#htbl').innerHTML='<table><thead><tr><th>Date</th><th>Item</th>'+(adj?'<th>Change</th><th>Reason</th>':'<th>Quantity</th>')+'<th>Note</th><th></th></tr></thead><tbody>'+list.map(e=>{
+    const s=infoOf(e);
+    return '<tr><td>'+fd(e.date)+'</td><td>'+epath(e)+'</td>'+(adj?'<td>'+(e.dir==='in'?'+':'-')+fmtQ(e.qty,s)+'</td><td>'+esc(e.reason||'')+'</td>':'<td>'+fmtQ(e.qty,s)+'</td>')+'<td>'+esc(e.note||'')+'</td><td style="white-space:nowrap"><button class="btn sm sec" data-a="editEntry" data-id="'+e.id+'">Edit</button> <button class="btn sm danger" data-a="delEntry" data-id="'+e.id+'">Delete</button></td></tr>';
+  }).join('')+'</tbody></table>';
+}
+function effectOn(e,cur){ // stock if this entry were removed
+  const plus=e.type==='stock'||(e.type==='adj'&&e.dir==='in');
+  return r2(plus?cur-e.qty:cur+e.qty);
+}
+App.editEntry=id=>{
+  const e=D.entries.find(x=>x.id===id);if(!e)return;
+  const it=liveOf(e);
+  if(!it)return toast('This item was deleted, so this record can only be deleted.');
+  const kindName={sale:'sale',stock:'stock entry',adj:'adjustment'}[e.type];
+  modal('Edit '+kindName,'<p class="mut">'+epath(e)+'</p>'+
+    (e.type==='adj'?'<div class="g2"><label>Increase or Decrease<select id="edir"><option value="in">Increase</option><option value="out">Decrease</option></select></label><label>Reason<select id="ers">'+REASONS.map(r=>'<option>'+r+'</option>').join('')+'</select></label></div>':'')+
+    '<label>Quantity'+qtyHTML('e')+'</label><label>Date<input type="date" id="ed"></label><label>Note<input id="en" maxlength="200"></label>','Save changes',()=>{
+    const q=readQty('e',it);if(q===null)return QERR;
+    const date=$('#ed').value;if(!date)return 'Please choose a date.';
+    const n=Object.assign({},e,{qty:q,date,note:$('#en').value.trim()});
+    if(e.type==='adj'){n.dir=$('#edir').value;n.reason=$('#ers').value;if(n.reason==='Other'&&!n.note)return 'Please write a note when the reason is Other.'}
+    const base=effectOn(e,curOf(e));
+    const plus=n.type==='stock'||(n.type==='adj'&&n.dir==='in');
+    const res=r2(plus?base+q:base-q);
+    if(res<0)return 'This change would make stock negative (it would be '+fmtQ(res,it)+').';
+    Object.assign(e,n);saveEntry(e);
+    refresh();
+  });
+  syncUnit('e',it,'meters');
+  $('#eq').value=rawU(e.qty,it);$('#ed').value=e.date;$('#en').value=e.note||'';
+  if(e.type==='adj'){$('#edir').value=e.dir;$('#ers').value=e.reason||'Other'}
+};
+App.delEntry=id=>{
+  const e=D.entries.find(x=>x.id===id);if(!e)return;
+  const it=liveOf(e);
+  confirmBox('Delete this record?','This will remove the record and update the stock.','Delete',()=>{
+    if(it){const res=effectOn(e,curOf(e));if(res<0)return 'Cannot delete: stock would become negative ('+fmtQ(res,it)+'). Record a sale or adjustment first if needed.'}
+    D.entries=D.entries.filter(x=>x.id!==id);removeEntry(id);refresh();
+  });
+};
+
+/* ---------- manage ---------- */
+const nameTaken=(list,name,except)=>list.some(x=>x.id!==except&&x.name.trim().toLowerCase()===name.toLowerCase());
+function pgManage(){
+  let h='<div class="card"><h3>Quick setup</h3><p class="mut small">One tap builds the standard list: category Wires &amp; Cables, lines Superio, Superio+, Classo+, Arizo+, Superior 200mtr+, sizes 1.0 to 6.0 sqmm, colors Red, Blue, Yellow, Green, Black. You can still change anything afterwards.</p><button class="btn" data-a="stdSetup">Set up standard wire list</button></div><div class="card"><h2>Manage</h2><p class="lede">Set up your wires: categories, subcategories, sizes, colors and prices. Tap a subcategory below to open it.</p><div class="row"><input id="newcat" placeholder="New category name (e.g. Switches)" maxlength="60"><button class="btn" data-a="addCat">Add Category</button></div></div>';
+  D.cats.forEach(c=>{
+    h+='<div class="card"><div class="rowh"><h3>'+esc(c.name)+'</h3><span><button class="btn sm sec" data-a="renCat" data-id="'+c.id+'">Rename</button> <button class="btn sm danger" data-a="delCat" data-id="'+c.id+'">Delete</button></span></div>';
+    D.subs.filter(s=>s.catId===c.id).forEach(s=>{
+      const nIt=D.items.filter(i=>i.subId===s.id).length;
+      h+='<details class="sub" data-k="'+s.id+'"'+(MOPEN[s.id]?' open':'')+'><summary><span>'+esc(s.name)+' <span class="mut small">'+nIt+(nIt===1?' size':' sizes')+'</span></span></summary><div class="subin"><div class="acts"><button class="btn sm" data-a="addItem" data-id="'+s.id+'">+ Add size</button><button class="btn sm sec" data-a="subPrices" data-id="'+s.id+'">₹ Prices</button><button class="btn sm sec" data-a="subColors" data-id="'+s.id+'">Colors for all sizes</button><button class="btn sm sec" data-a="renSub" data-id="'+s.id+'">Rename</button><button class="btn sm danger" data-a="delSub" data-id="'+s.id+'">Delete</button></div>';
+      const its=D.items.filter(i=>i.subId===s.id);
+      if(!its.length)h+='<p class="mut small">No sizes yet. Tap + Add size.</p>';
+      its.forEach(i=>{
+        h+='<div class="irow"><span><b>'+esc(i.name)+'</b>'+(i.colors.length?i.colors.map(c=>'<span class="colr">'+sw(c)+esc(c)+'</span>').join(''):'')+' <span class="mut small">· '+esc(i.unit)+' · low limit '+fmtQ(i.low||0,i)+' · target '+fmtQ(i.target||0,i)+(i.colors.length?' (each color)':'')+'</span></span><span><button class="btn sm sec" data-a="editItem" data-id="'+i.id+'">Edit</button> <button class="btn sm sec" data-a="priceHist" data-id="'+i.id+'">₹ History</button> <button class="btn sm danger" data-a="delItem" data-id="'+i.id+'">Delete</button></span></div>';
+      });
+      h+='</div></details>';
+    });
+    h+='<div class="row"><input id="ns_'+c.id+'" placeholder="New subcategory (e.g. company or model)" maxlength="60"><button class="btn sm" data-a="addSub" data-id="'+c.id+'">Add Subcategory</button></div><label class="chk"><input type="checkbox" id="nsz_'+c.id+'">Also add sizes 1.0, 1.5, 2.5, 4.0, 6.0 sqmm (200 m coils) with colors Red, Blue, Yellow, Green, Black</label></div>';
+  });
+  page(h);
+}
+const STD_SUBS=['Superio','Superio+','Classo+','Arizo+','Superior 200mtr+'],STD_SIZES=['1.0','1.5','2.5','4.0','6.0'];
+const subKey=n=>{n=String(n).toLowerCase().replace(/v-?guard/g,'').replace(/\s+/g,'').replace(/plus/g,'+');return /200/.test(n)?'200':n};
+App.stdSetup=()=>modal('Set up the standard wire list?','<p>This uses the category <b>Wires &amp; Cables</b> with Superio, Superio+, Classo+, Arizo+ and Superior 200mtr+, sizes 1.0, 1.5, 2.5, 4.0, 6.0 sqmm, and colors Red, Blue, Yellow, Green, Black.</p><p class="mut small">Your existing items, stock and records are kept. Only missing lines, sizes and colors are added, and an empty leftover category such as a mistaken V-Guard one is removed. Stock you already counted stays as "No color (old stock)" until you move it with Adjust Stock.</p>','Set up',()=>{
+  let cat=D.cats.find(c=>c.name.trim().toLowerCase()==='wires & cables')||D.cats.find(c=>c.name.trim().toLowerCase()==='v-guard');
+  if(!cat){cat={id:uid(),name:'Wires & Cables'};D.cats.push(cat)}else cat.name='Wires & Cables';
+  STD_SUBS.forEach(nm=>{
+    let sb=D.subs.find(x=>x.catId===cat.id&&subKey(x.name)===subKey(nm));
+    if(!sb){sb={id:uid(),catId:cat.id,name:nm};D.subs.push(sb)}else sb.name=nm;
+    STD_SIZES.forEach(sz=>{
+      let it=D.items.find(x=>x.subId===sb.id&&parseFloat(x.name)===parseFloat(sz));
+      if(!it){it={id:uid(),subId:sb.id,name:sz+' sqmm',unit:'coil',mpc:200,start:0,low:0,target:0,colors:[],cstart:{}};D.items.push(it)}
+      PRESET.forEach(c=>{if(!it.colors.some(x=>x.toLowerCase()===c.toLowerCase()))it.colors.push(c)});
+    });
+  });
+  D.cats=D.cats.filter(c=>c.id===cat.id||D.subs.some(x=>x.catId===c.id)||!/guard|superio/i.test(c.name));
+  save();refresh();toast('Standard wire list is ready');
+});
+App.addCat=()=>{
+  const n=$('#newcat').value.trim();if(!n)return toast('Please type a category name.');
+  if(nameTaken(D.cats,n))return toast('That category already exists.');
+  D.cats.push({id:uid(),name:n});save();refresh();
+};
+App.addSub=id=>{
+  const el=$('#ns_'+id),n=el.value.trim();if(!n)return toast('Please type a subcategory name.');
+  if(nameTaken(D.subs.filter(s=>s.catId===id),n))return toast('That subcategory already exists here.');
+  const sub={id:uid(),catId:id,name:n};D.subs.push(sub);
+  const z=$('#nsz_'+id);
+  if(z&&z.checked)['1.0 sqmm','1.5 sqmm','2.5 sqmm','4.0 sqmm','6.0 sqmm'].forEach(nm=>D.items.push({id:uid(),subId:sub.id,name:nm,unit:'coil',mpc:200,start:0,low:0,target:0,colors:PRESET.slice(),cstart:{}}));
+  save();refresh();
+};
+function renameBox(title,list,obj){
+  modal(title,'<label>New name<input id="rn" maxlength="60" value="'+esc(obj.name)+'"></label>','Save',()=>{
+    const n=$('#rn').value.trim();if(!n)return 'Please type a name.';
+    if(nameTaken(list,n,obj.id))return 'That name already exists.';
+    obj.name=n;save();refresh();
+  });
+  $('#rn').select();
+}
+App.renCat=id=>renameBox('Rename category',D.cats,catById(id));
+App.renSub=id=>{const s=subById(id);renameBox('Rename subcategory',D.subs.filter(x=>x.catId===s.catId),s)};
+App.delCat=id=>{
+  const c=catById(id),subs=D.subs.filter(s=>s.catId===id),n=D.items.filter(i=>subs.some(s=>s.id===i.subId)).length;
+  confirmBox('Delete category "'+c.name+'"?','This will also remove <b>'+subs.length+' subcategor'+(subs.length===1?'y':'ies')+'</b> and <b>'+n+' item'+(n===1?'':'s')+'</b> inside it, along with their stock. Past sales history will stay in the records.','Delete category',()=>{
+    const ids=subs.map(s=>s.id);
+    D.items=D.items.filter(i=>!ids.includes(i.subId));D.subs=D.subs.filter(s=>s.catId!==id);D.cats=D.cats.filter(x=>x.id!==id);
+    save();refresh();
+  });
+};
+App.delSub=id=>{
+  const s=subById(id),n=D.items.filter(i=>i.subId===id).length;
+  confirmBox('Delete subcategory "'+s.name+'"?','This will also remove <b>'+n+' item'+(n===1?'':'s')+'</b> inside it, along with their stock. Past sales history will stay in the records.','Delete subcategory',()=>{
+    D.items=D.items.filter(i=>i.subId!==id);D.subs=D.subs.filter(x=>x.id!==id);save();refresh();
+  });
+};
+App.delItem=id=>{
+  const i=itemById(id);
+  confirmBox('Delete item "'+i.name+'"?','The item and its stock will be removed. Past sales history will stay in the records.','Delete item',()=>{D.items=D.items.filter(x=>x.id!==id);save();refresh()});
+};
+App.addItem=id=>itemModal(id,null);
+App.editItem=id=>{const i=itemById(id);itemModal(i.subId,i)};
+App.priceHist=id=>{
+  const it=itemById(id);if(!it)return;
+  const sb=subById(it.subId)||{};
+  let R=it.prices.map(p=>({from:p.from,mrp:p.mrp,disc:p.disc}));
+  if(!R.length)R=[{from:'0000-00-00',mrp:'',disc:0}];
+  const ov=modal('Price history: '+(sb.name||'')+' '+it.name,'<p class="mut small">Each price applies from its start date until the next one starts. A sale uses the price active on the day it was sold, so you can set different prices for past days. The first line applies to all earlier sales.</p><div id="phb"></div><button class="btn sm sec" type="button" id="phadd">+ Add a price from a date</button>','Save price history',ov=>{
+    read();
+    const out=[],seen={};
+    for(const r of R){
+      const mrp=parseFloat(r.mrp),dc=parseFloat(r.disc)||0;
+      if(!(mrp>0))return 'Enter the MRP for every line, or delete the line.';
+      if(dc<0||dc>100)return 'Discount must be between 0 and 100.';
+      if(!/^(\d{4}-\d{2}-\d{2})$/.test(r.from))return 'Choose a start date for every line.';
+      if(seen[r.from])return 'Two lines have the same start date ('+r.from+'). Change or delete one.';
+      seen[r.from]=1;out.push({from:r.from,mrp,disc:dc,rate:r2(mrp*(1-dc/100))});
+    }
+    out.sort((a,b)=>a.from<b.from?-1:a.from>b.from?1:0);
+    it.prices=out;save();refresh();toast('Price history saved');
+  });
+  const read=()=>{ov.querySelectorAll('#phb .hrow[data-n]').forEach(row=>{const n=+row.dataset.n,r=R[n];if(!r)return;const d=row.querySelector('.ph-d');if(d)r.from=d.value;r.mrp=row.querySelector('.ph-m').value;r.disc=row.querySelector('.ph-p').value})};
+  const draw=()=>{
+    let h='<div class="hrow h"><span>Starts on</span><span>MRP (₹)</span><span>Disc %</span><span>Net rate</span><span></span></div>';
+    R.forEach((r,n)=>{
+      const m=parseFloat(r.mrp)||0,d=parseFloat(r.disc)||0;
+      h+='<div class="hrow" data-n="'+n+'">'+(r.from==='0000-00-00'?'<span class="small">Earlier sales</span>':'<input class="ph-d" type="date" value="'+esc(r.from)+'">')+'<input class="ph-m" type="number" min="0" step="any" inputmode="decimal" value="'+esc(r.mrp)+'"><input class="ph-p" type="number" min="0" max="100" step="any" inputmode="decimal" value="'+esc(r.disc)+'"><b class="ph-n">'+(m>0?rs(m*(1-d/100)):'-')+'</b><button class="btn sec x" type="button" data-x="'+n+'" aria-label="Delete this price"'+(R.length<2?' disabled':'')+'>✕</button></div>';
+    });
+    ov.querySelector('#phb').innerHTML=h;
+  };
+  draw();
+  ov.addEventListener('input',e=>{const row=e.target.closest('.hrow[data-n]');if(!row)return;const m=parseFloat(row.querySelector('.ph-m').value)||0,d=parseFloat(row.querySelector('.ph-p').value)||0;row.querySelector('.ph-n').textContent=m>0?rs(m*(1-d/100)):'-'});
+  ov.addEventListener('click',e=>{
+    const x=e.target.closest('[data-x]');
+    if(x){read();R.splice(+x.dataset.x,1);draw();return}
+    if(e.target.id==='phadd'){read();const l=R[R.length-1]||{mrp:'',disc:0};R.push({from:today(),mrp:l.mrp,disc:l.disc});draw()}
+  });
+};
+App.subPrices=id=>{
+  const sb=subById(id),its=D.items.filter(i=>i.subId===id);
+  if(!its.length)return toast('Add items to this subcategory first.');
+  const first=its.some(i=>!i.prices.length);
+  let h='<p class="mut small">Enter MRP and discount % for each size. The net rate is worked out for you. One price applies to all colors of a size.</p><label>Price starts from<input type="date" id="ppd" value="'+today()+'"></label>'+(first?'<p class="mut small">The first price you set for a size also applies to all sales already recorded for it.</p>':'')+
+  '<div class="prow h"><span>Size</span><span>MRP (₹)</span><span>Disc %</span><span>Net rate</span></div>';
+  its.forEach((i,n)=>{const cp=i.prices.length?i.prices[i.prices.length-1]:null;
+    h+='<div class="prow"><b>'+esc(i.name)+'</b><input class="pm" data-n="'+n+'" type="number" min="0" step="any" inputmode="decimal" value="'+(cp?cp.mrp:'')+'"><input class="pdc" data-n="'+n+'" type="number" min="0" max="100" step="any" inputmode="decimal" value="'+(cp?cp.disc:'')+'"><b id="pn'+n+'">'+(cp?rs(cp.rate):'-')+'</b></div>'});
+  const ov=modal('Prices: '+sb.name,h,'Save prices',ov=>{
+    const date=$('#ppd').value||today();let ch=0;
+    for(let n=0;n<its.length;n++){
+      const mrp=parseFloat(ov.querySelector('.pm[data-n="'+n+'"]').value),dc=parseFloat(ov.querySelector('.pdc[data-n="'+n+'"]').value)||0;
+      if(!(mrp>0))continue;
+      if(dc<0||dc>100)return 'Discount must be between 0 and 100 for '+its[n].name+'.';
+      if(setPrice(its[n],date,mrp,dc))ch++;
+    }
+    if(ch){save();refresh();toast('Prices saved')}
+  });
+  const upd=e=>{const n=e.target.dataset.n;if(n===undefined)return;const m=parseFloat(ov.querySelector('.pm[data-n="'+n+'"]').value)||0,d=parseFloat(ov.querySelector('.pdc[data-n="'+n+'"]').value)||0;ov.querySelector('#pn'+n).textContent=m>0?rs(m*(1-d/100)):'-'};
+  ov.addEventListener('input',upd);
+};
+const colorChips=sel=>{
+  sel=sel||[];
+  const set=new Set(sel.map(c=>c.toLowerCase()));
+  const extra=sel.filter(c=>!PRESET.some(p=>p.toLowerCase()===c.toLowerCase()));
+  return '<div class="chips">'+PRESET.map(c=>'<label class="chip"><input type="checkbox" class="cc" value="'+c+'"'+(set.has(c.toLowerCase())?' checked':'')+'>'+sw(c)+c+'</label>').join('')+'</div><label>Other colors (separate with commas)<input class="cx" maxlength="80" value="'+esc(extra.join(', '))+'" placeholder="e.g. White, Grey"></label>';
+};
+function readColors(ov){
+  const out=[],add=c=>{c=String(c).trim().replace(/\s+/g,' ');if(c&&!out.some(x=>x.toLowerCase()===c.toLowerCase()))out.push(c.charAt(0).toUpperCase()+c.slice(1))};
+  ov.querySelectorAll('.cc:checked').forEach(x=>add(x.value));
+  const cx=ov.querySelector('.cx');if(cx)cx.value.split(',').forEach(add);
+  return out;
+}
+App.subColors=id=>{
+  const s=subById(id),its=D.items.filter(i=>i.subId===id);
+  if(!its.length)return toast('Add items to this subcategory first.');
+  modal('Colors for all items in '+s.name,'<p class="mut small">The colors you tick are added to all '+its.length+' items in this subcategory. Colors an item already has are kept. Starting stock for a new color is 0. Stock you already counted stays as "No color (old stock)" until you move it with Adjust Stock.</p>'+colorChips([]),'Add colors',ov=>{
+    const cols=readColors(ov);if(!cols.length)return 'Please choose at least one color.';
+    its.forEach(i=>cols.forEach(c=>{if(!i.colors.some(x=>x.toLowerCase()===c.toLowerCase()))i.colors.push(c)}));
+    save();refresh();
+  });
+};
+function itemModal(subId,it){
+  const edit=!!it,mpc0=edit?(it.mpc||0):0;
+  // when editing a coil item, show the numbers in coils by default
+  const f0=mpc0>0?mpc0:1;
+  const v=x=>edit?r2((x||0)/f0):'';
+  const exist=c=>edit?it.colors.find(x=>x.toLowerCase()===c.toLowerCase()):null;
+  const ov=modal(edit?'Edit item':'Add item',
+  '<label>Name or size<input id="in" maxlength="60" value="'+esc(it?it.name:'')+'" placeholder="e.g. 1.0 sqmm"></label>'+
+  (edit&&mpc0===0?'<label>Unit label<input id="iu" maxlength="20" value="'+esc(it.unit)+'" placeholder="piece, box"></label>':'')+
+  '<div class="subbox"><b>Colors (optional)</b><div class="mut small">Tick the colors this item comes in. Stock is then tracked separately for each color.</div>'+colorChips(it?it.colors:[])+'</div>'+
+  '<p class="mut small">'+(edit&&mpc0===0?'':'All quantities below are in coils.')+'</p>'+
+  '<div id="icw"></div>'+
+  '<div class="g3"><label id="isw">Starting quantity (coils)<input id="is" type="number" min="0" step="any" inputmode="decimal" value="'+v(it&&it.start)+'" placeholder="0"></label><label>Low-stock limit<input id="il" type="number" min="0" step="any" inputmode="decimal" value="'+v(it&&it.low)+'" placeholder="0"></label><label>Target stock<input id="it" type="number" min="0" step="any" inputmode="decimal" value="'+v(it&&it.target)+'" placeholder="0"></label></div>'+
+  '<p class="mut small">Low-stock limit: warn when stock falls to this level. Target stock: used to suggest how much to order.</p><p class="mut small" id="icn"></p>',
+  edit?'Save changes':'Add item',ov=>{
+    const name=$('#in').value.trim();if(!name)return 'Please type a name or size.';
+    if(nameTaken(D.items.filter(x=>x.subId===subId),name,it&&it.id))return 'An item with this name already exists in this subcategory.';
+    const mpc=edit?mpc0:200;
+        const unit=edit?(mpc0===0?($('#iu').value.trim()||'piece'):it.unit):'coil';
+    const f=mpc>0?mpc:1;
+    const rd=id=>{const x=parseFloat($(id).value);return isNaN(x)?0:x};
+    const colors=readColors(ov).map(c=>exist(c)||c);
+    const typed={};ov.querySelectorAll('.cs').forEach(x=>{typed[x.dataset.c]=parseFloat(x.value)||0});
+    const cs={};colors.forEach(c=>{cs[c]=r2((typed[c]||0)*f)});
+    const s=colors.length?(edit?it.start:0):r2(rd('#is')*f),l=r2(rd('#il')*f),t=r2(rd('#it')*f);
+    if(s<0||l<0||t<0||colors.some(c=>cs[c]<0))return 'Quantities cannot be negative.';
+    if(mpc===0&&(![s,l,t].concat(colors.map(c=>cs[c])).every(Number.isInteger)))return 'Use whole numbers for items counted in pieces or boxes.';
+    if(edit){
+      const gone=it.colors.filter(c=>!colors.some(x=>x.toLowerCase()===c.toLowerCase()));
+      for(const c of gone){
+        if(D.entries.some(e=>e.itemId===it.id&&e.color===c)||(it.cstart[c]||0)>0)return 'The color "'+c+'" already has stock or records, so it cannot be removed.';
+      }
+      const st=stats(),curK=k=>st[k]?st[k].cur:0;
+      if(colors.length){
+        for(const c of colors){if(curK(vk(it.id,c))+(cs[c]-(it.cstart[c]||0))<0)return 'Changing the starting quantity of '+c+' would make its stock negative.'}
+      }else if(curK(it.id)+(s-it.start)<0)return 'Changing the starting quantity would make stock negative.';
+      Object.assign(it,{name,unit,start:s,low:l,target:t,colors,cstart:cs});
+    }else D.items.push({id:uid(),subId,name,unit,mpc,start:s,low:l,target:t,colors,cstart:cs});
+    save();refresh();
+  });
+  const renderStarts=()=>{
+    const cols=readColors(ov).map(c=>exist(c)||c);
+    const keep={};ov.querySelectorAll('.cs').forEach(x=>{keep[x.dataset.c]=x.value});
+    $('#isw').hidden=cols.length>0;
+    $('#icw').innerHTML=cols.length?'<div class="g3">'+cols.map(c=>'<label>'+sw(c)+'Starting '+esc(c)+'<input class="cs" data-c="'+esc(c)+'" type="number" min="0" step="any" inputmode="decimal" value="'+esc(keep[c]!==undefined?keep[c]:(exist(c)?v(it.cstart[exist(c)]):''))+'" placeholder="0"></label>').join('')+'</div>':'';
+    $('#icn').textContent=cols.length?('Low-stock limit and target apply to each color separately.'+(edit&&it.start>0?' Stock counted before without a color stays as "No color (old stock)". Use Adjust Stock to move it into a color.':'')):'';
+  };
+  ov.addEventListener('change',e=>{if(e.target.classList.contains('cc'))renderStarts()});
+  ov.querySelector('.cx').addEventListener('input',renderStarts);
+  renderStarts();
+  if(!edit)$('#in').focus();
+}
+
+/* ---------- account ---------- */
+function pgAccount(){
+  page('<div class="card"><h2>Account</h2><p class="lede">Your login, backups and password.</p><p><b>Shop:</b> '+esc(acct.shop)+'<br><b>Email:</b> '+esc(acct.email)+'</p>'+
+  '<div class="good">Your data is saved online. Log in with the same email and password on any phone or computer to see the same stock. This needs internet.</div>'+
+  '<div class="warn">Please still take regular backups (Export backup) and keep the file safe, for example in your email or on a pen drive.</div></div>'+
+  '<div class="card"><h3>Backup</h3><div class="row"><button class="btn" data-a="expBk">Export backup</button><button class="btn sec" data-a="impBk">Import backup</button></div><p class="small mut">Import replaces all data in this shop with the data from the backup file. Backups made by the old offline version also work.</p></div>'+
+  '<div class="card"><h3>Change password</h3><label>Old password<input type="password" id="op" autocomplete="current-password"></label><label>New password (at least 6 characters)<input type="password" id="np" autocomplete="new-password"></label><div class="small mut" id="nps"></div><label>Confirm new password<input type="password" id="np2" autocomplete="new-password"></label><label class="chk"><input type="checkbox" id="pshow">Show passwords</label><div id="pwmsg"></div><button class="btn" data-a="chgPw">Change password</button></div>'+
+  '<div class="card"><h3>Security</h3><label class="chk"><input type="checkbox" id="alo"'+(store.get('sst_alo')==='1'?' checked':'')+'>Auto-logout after 15 minutes of inactivity (this device only)</label></div>'+
+  '<div class="card"><h3>Delete account</h3><p class="mut">This permanently erases the shop account and all its data, on all devices.</p><button class="btn danger" data-a="delAcc">Delete account</button></div>');
+  $('#np').oninput=e=>{$('#nps').textContent=strength(e.target.value)};
+  $('#pshow').onchange=e=>{['op','np','np2'].forEach(i=>$('#'+i).type=e.target.checked?'text':'password')};
+  $('#alo').onchange=e=>{store.set('sst_alo',e.target.checked?'1':'0');lastAct=Date.now();toast(e.target.checked?'Auto-logout is on':'Auto-logout is off')};
+}
+App.expBk=()=>{
+  D.lastBackup=Date.now();save();
+  const o={app:'Shop Stock Tracker',version:1,shop:acct.shop,email:acct.email,exportedAt:new Date().toISOString(),data:D};
+  download('stock-backup-'+(acct.shop||'shop').replace(/[^a-z0-9]+/gi,'-')+'-'+today()+'.json',JSON.stringify(o,null,2),'application/json');
+  toast('Backup downloaded');if(tab==='account')pgAccount();
+};
+App.impBk=()=>{$('#impfile').value='';$('#impfile').click()};
+function onImport(ev){
+  const f=ev.target.files[0];if(!f)return;
+  const rd=new FileReader();
+  rd.onload=()=>{
+    let o;try{o=JSON.parse(rd.result)}catch(e){return toast('That file is not a valid backup.')}
+    const d=o&&o.data?o.data:o;
+    if(!d||!Array.isArray(d.cats)||!Array.isArray(d.subs)||!Array.isArray(d.items)||!Array.isArray(d.entries))return toast('That file is not a valid backup.');
+    confirmBox('Restore from backup?','This will <b>replace all current data</b> in this shop with the backup ('+d.items.length+' items, '+d.entries.length+' records). Continue?','Restore',async()=>{
+      try{
+        const nd=normData(clean(d));
+        nd.entries.forEach(e=>{if(!e.id)e.id=uid()});
+        const old=await getDocs(collection(db,'shops',user,'entries'));
+        const keep=new Set(nd.entries.map(e=>e.id));
+        const ops=nd.entries.map(e=>b=>b.set(entRef(e.id),clean(e)));
+        old.docs.forEach(x=>{if(!keep.has(x.id))ops.push(b=>b.delete(x.ref))});
+        await batchOps(ops);
+        await setDoc(shopRef,clean({cats:nd.cats,subs:nd.subs,items:nd.items,lastBackup:nd.lastBackup||null}),{merge:true});
+        D=Object.assign(D,nd);buildNav();go('dashboard');toast('Backup restored');
+      }catch(x){return 'Could not restore: '+((x&&x.message)||x)}
+    });
+  };
+  rd.onerror=()=>toast('Could not read the file.');
+  rd.readAsText(f);
+}
+const reauth=pw=>reauthenticateWithCredential(auth.currentUser,EmailAuthProvider.credential(auth.currentUser.email,pw));
+App.chgPw=async()=>{
+  const op=$('#op').value,np=$('#np').value,np2=$('#np2').value,out=$('#pwmsg');
+  if(!op)return msg(out,'Please enter your old password.');
+  if(np.length<6)return msg(out,'New password must be at least 6 characters.');
+  if(np!==np2)return msg(out,'The new passwords do not match.');
+  try{await reauth(op)}catch(x){return msg(out,/network/.test((x&&x.code)||'')?authMsg(x):'Old password is wrong.')}
+  try{await updatePassword(auth.currentUser,np)}catch(x){return msg(out,authMsg(x))}
+  ['op','np','np2'].forEach(i=>$('#'+i).value='');$('#nps').textContent='';
+  msg(out,'Password changed.',true);
+};
+App.delAcc=()=>{
+  modal('Delete account','<p class="bad">This will permanently erase the shop account and all its data, on every device. Take a backup first if you may need it.</p><label>Enter your password<input type="password" id="dp" autocomplete="current-password"></label><label class="chk"><input type="checkbox" id="dc">Yes, I understand and want to delete everything</label>','Delete forever',async()=>{
+    if(!$('#dc').checked)return 'Please tick the box to confirm.';
+    try{await reauth($('#dp').value)}catch(x){return /network/.test((x&&x.code)||'')?authMsg(x):'Wrong password.'}
+    try{
+      const uidv=user,cu=auth.currentUser;
+      teardown();
+      const snap=await getDocs(collection(db,'shops',uidv,'entries'));
+      await batchOps(snap.docs.map(d=>b=>b.delete(d.ref)));
+      await deleteDoc(doc(db,'shops',uidv));
+      pendingMsg='Your account was deleted.';
+      await deleteUser(cu);
+    }catch(x){return 'Could not delete: '+((x&&x.message)||x)+' Please log out and log in again.'}
+  },{danger:true});
+};
+
+/* ---------- global wiring ---------- */
+document.addEventListener('click',e=>{
+  const b=e.target.closest('[data-a]');
+  if(b&&App[b.dataset.a])App[b.dataset.a](b.dataset.id,b);
+});
+['click','keydown','touchstart','mousemove'].forEach(ev=>document.addEventListener(ev,()=>{lastAct=Date.now()},{passive:true}));
+setInterval(()=>{if(user&&store.get('sst_alo')==='1'&&Date.now()-lastAct>15*60000)logout('You were logged out after 15 minutes of inactivity.')},10000);
+$('#tLogin').onclick=()=>setAuthTab(true);
+$('#tCreate').onclick=()=>setAuthTab(false);
+$('#fLogin').onsubmit=doLogin;
+$('#fCreate').onsubmit=doCreate;
+$('#lshow').onchange=e=>$('#lp').type=e.target.checked?'text':'password';
+$('#cshow').onchange=e=>{$('#cp').type=$('#cp2').type=e.target.checked?'text':'password'};
+$('#cp').oninput=e=>{$('#cstr').textContent=strength(e.target.value)};
+$('#forgot').onclick=async()=>{
+  const em=$('#lu').value.trim(),n=$('#fnote');n.hidden=false;
+  if(!em){n.textContent='Type your email in the box above, then tap "Forgot password?" again. We will email you a link to set a new password.';return}
+  if(!CONFIGURED){n.textContent='Setup needed: Firebase settings are not filled in.';return}
+  try{await sendPasswordResetEmail(auth,em);n.textContent='If an account exists for '+em+', a password reset link has been emailed. Please check your inbox and spam folder.'}
+  catch(x){n.textContent=authMsg(x)}
+};
+$('#btnBack').onclick=()=>history.back();
+$('#btnLogout').onclick=()=>logout();
+window.addEventListener('resize',setHH);
+$('#impfile').onchange=onImport;
+
+/* ---------- start ---------- */
+if(!CONFIGURED){showAuth()}
+else{
+  onAuthStateChanged(auth,async u=>{
+    if(!u){const m=pendingMsg;pendingMsg='';showAuth(m);return}
+    teardown();
+    user=u.uid;
+    showBoot('Loading your shop...');
+    const t=setTimeout(()=>{if(!$('#boot').hidden)$('#boot').textContent='Still connecting... the first login on a device needs internet.'},12000);
+    try{await startSync(u.uid);clearTimeout(t);enterApp()}
+    catch(x){
+      clearTimeout(t);
+      pendingMsg=(x&&x.code==='permission-denied')?'Could not open your data: the Firestore rules are not set up correctly. See the setup steps.':'Could not load your data: '+((x&&x.message)||x);
+      signOut(auth).catch(()=>showAuth(pendingMsg));
+    }
+  });
+}
+})();
+</script>
+<script>if('serviceWorker' in navigator){window.addEventListener('load',function(){navigator.serviceWorker.register('sw.js').catch(function(){})})}</script>
+</body>
+</html>

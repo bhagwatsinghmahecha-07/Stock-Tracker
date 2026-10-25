@@ -190,9 +190,11 @@ button.stat:hover{transform:none;box-shadow:none;border-color:var(--pri)}
   .pt{display:block;flex:1;min-width:0}
   .pt b{display:block;color:#fff;font-size:1.05rem;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .pt span{display:block;color:#aab7d6;font-size:.76rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .back{width:42px;height:42px;padding:0;margin:0;font-size:0;display:inline-flex;align-items:center;justify-content:center}
-  .back[hidden]{display:none}
-  .back::before{content:"←";font-size:1.25rem;line-height:1}
+  header #btnBack{order:3;flex:0 0 42px;width:42px;height:42px;min-height:0;padding:0;margin:0;font-size:0;display:inline-flex;align-items:center;justify-content:center}
+  header #btnBack[hidden]{display:none}
+  header #btnBack::before{content:"←";font-size:1.25rem;line-height:1}
+  header .menu{order:1}
+  header .pt{order:2}
   #nav{position:fixed;left:0;right:0;top:var(--hh,58px);bottom:auto;max-height:calc(100vh - var(--hh,58px));overflow-y:auto;z-index:40;display:none;grid-template-columns:1fr 1fr;gap:8px;padding:12px 12px 20px;background:var(--card);border-bottom:1px solid var(--bd);box-shadow:0 14px 30px rgba(0,0,0,.2)}
   body.menu-open #nav{display:grid}
   body.menu-open::after{content:"";position:fixed;left:0;right:0;bottom:0;top:var(--hh,58px);background:rgba(10,16,32,.45);z-index:35}
@@ -228,6 +230,14 @@ details.sub>summary::after{content:"+";font-size:1.2rem;color:var(--mut);font-we
 details.sub[open]>summary::after{content:"−"}
 details.sub>.subin{padding:0 14px 12px;border-top:1px solid var(--bd)}
 .acts{display:flex;gap:6px;flex-wrap:wrap;margin:10px 0 4px}
+.cfield{grid-column:1/-1}.clab{display:block;font-weight:500;color:var(--mut);font-size:.85rem}
+.cchips{display:flex;flex-wrap:wrap;gap:8px;margin-top:6px}
+.cchip{display:inline-flex;align-items:center;gap:7px;min-height:44px;padding:8px 14px;border:1px solid var(--bd);border-radius:22px;background:var(--inp);color:var(--tx);font:inherit;font-weight:500;cursor:pointer}
+.cchip small{color:var(--mut);font-weight:400;font-size:.78rem}
+.cchip.on{border-color:var(--pri);box-shadow:0 0 0 2px var(--ring);background:var(--hd);font-weight:600}
+.cchip.zero{opacity:.6}
+.savebar{margin-top:16px}
+@media(max-width:959px){.savebar{position:sticky;bottom:0;z-index:20;background:var(--card);border-top:1px solid var(--bd);margin:16px -14px -14px;padding:10px 14px calc(10px + env(safe-area-inset-bottom))}.savebar .btn.big{width:100%}}
 .brand{flex:1}
 .back{flex:0 0 auto;min-height:36px;padding:4px 12px;margin-right:4px;border-radius:9px;border:1px solid rgba(255,255,255,.3);background:transparent;color:#fff;font:inherit;font-weight:600;font-size:.9rem;cursor:pointer;white-space:nowrap}
 .back:hover{background:rgba(255,255,255,.1)}
@@ -519,7 +529,7 @@ function modal(title,html,okLabel,onOk,opts){
 const confirmBox=(title,msg,label,fn)=>modal(title,'<p>'+msg+'</p>',label,fn,{danger:true});
 
 /* ---------- pickers & quantity ---------- */
-const pickerHTML=(id,all,noItem)=>'<div class="'+(noItem?'g2':'g3')+'" id="'+id+'g"><label>Category<select id="'+id+'c"></select></label><label>Subcategory<select id="'+id+'s"></select></label>'+(noItem?'':'<label>Item / size<select id="'+id+'i"></select></label>')+'<label id="'+id+'cw" hidden>Color<select id="'+id+'col"></select></label></div>';
+const pickerHTML=(id,all,noItem)=>'<div class="'+(noItem?'g2':'g3')+'" id="'+id+'g"><label>Category<select id="'+id+'c"></select></label><label>Subcategory<select id="'+id+'s"></select></label>'+(noItem?'':'<label>Item / size<select id="'+id+'i"></select></label>')+(noItem?'<label id="'+id+'cw" hidden>Color<select id="'+id+'col"></select></label>':'<div id="'+id+'cw" class="cfield" hidden><span class="clab">Color</span><div class="cchips" id="'+id+'cc"></div><select id="'+id+'col" hidden></select></div>')+'</div>';
 function wirePicker(id,all,noItem,cb,init){
   init=init||{};
   const c=$('#'+id+'c'),s=$('#'+id+'s'),i=noItem?null:$('#'+id+'i'),col=$('#'+id+'col'),cw=$('#'+id+'cw'),g=$('#'+id+'g');
@@ -543,7 +553,25 @@ function wirePicker(id,all,noItem,cb,init){
     col.innerHTML=h;cw.hidden=!n;
     g.className=n?(noItem?'g3':'g2'):(noItem?'g2':'g3');
     if(n&&v)keep(col,v);
+    if(!noItem){buildChips();syncChips()}
   };
+  const syncChips=()=>{const cc=$('#'+id+'cc');if(!cc)return;cc.querySelectorAll('.cchip').forEach(b=>b.classList.toggle('on',col.value!=='#'&&b.dataset.v===col.value))};
+  function buildChips(){
+    const cc=$('#'+id+'cc');if(!cc)return;
+    cc.innerHTML='';
+    const it=itemById(i.value);
+    if(!it||!it.colors.length)return;
+    const S=stats();
+    variants(it).filter(x=>!(init.kind==='stock'&&isLegacy(it,x))).forEach(x=>{
+      const b=document.createElement('button');b.type='button';
+      const cur=S[x.key]?S[x.key].cur:0;
+      b.className='cchip'+(cur<=0?' zero':'');b.dataset.v=x.color;
+      b.innerHTML=sw(x.color)+esc(x.color||'Old stock')+' <small>'+esc(fmtQ(cur,it))+'</small>';
+      b.onclick=()=>{col.value=x.color;col.dispatchEvent(new Event('change'));syncChips()};
+      cc.appendChild(b);
+    });
+  }
+  col._rebuild=()=>{buildChips();syncChips()};
   fillC(init.cat);fillS(init.sub);fillI(init.item);fillCol(init.color);
   c.onchange=()=>{fillS('');fillI('');fillCol('');cb()};
   s.onchange=()=>{fillI('');fillCol('');cb()};
@@ -813,7 +841,7 @@ function pgEntry(kind){
   '<div class="g2"><label>Quantity (coils)'+qtyHTML('p')+'<span class="hint">Whole coils. Use 0.5 for half a coil.</span></label><label>Date<input type="date" id="pd" value="'+today()+'"><span class="hint">Today by default. Change it only to enter an older record.</span></label></div>'+
   (kind==='stock'?'<div class="step"><i>3</i>Price of these coils</div><div class="g3"><label>MRP per coil (₹)<input id="pmrp" type="number" min="0" step="any" inputmode="decimal"><span class="hint">The maximum retail price of one coil.</span></label><label>Discount %<input id="pdisc" type="number" min="0" max="100" step="any" inputmode="decimal"><span class="hint">Your discount off the MRP.</span></label><label>Net rate per coil (₹)<input id="prate" readonly><span class="hint">MRP minus discount. This is the selling rate counted in Sales ₹.</span></label></div><p class="mut small" id="pnote"></p>':'')+
   '<div class="step"><i>'+(kind==='stock'?4:n2+1)+'</i>Note (optional)</div><label><input id="pn" maxlength="200"><span class="hint">'+NOTEH[kind]+'</span></label>'+
-  '<div id="pmsg"></div><button class="btn big" id="psave" type="button">'+({sale:'Save sale',stock:'Add stock',adj:'Save adjustment'}[kind])+'</button></div>');
+  '<div class="savebar"><div id="pmsg"></div><button class="btn big" id="psave" type="button">'+({sale:'Save sale',stock:'Add stock',adj:'Save adjustment'}[kind])+'</button></div></div>');
   let lastPI='';
   const netUpd=()=>{const m=parseFloat($('#pmrp').value)||0,d=parseFloat($('#pdisc').value)||0;$('#prate').value=m>0?r2(m*(1-d/100)):''};
   const fillPrice=it=>{
@@ -825,6 +853,7 @@ function pgEntry(kind){
   if(kind==='stock'){$('#pmrp').oninput=netUpd;$('#pdisc').oninput=netUpd}
   const upd=()=>{
     const it=pickedItem('p');syncUnit('p',it,kind==='stock'?'coils':'meters');if(kind==='stock')fillPrice(it);
+    {const cl=$('#pcol');if(cl&&cl._rebuild)cl._rebuild()}
     let t='Please choose an item.';
     if(it){
       const S=stats();

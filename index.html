@@ -211,6 +211,9 @@ button.stat:hover{transform:none;box-shadow:none;border-color:var(--pri)}
   .stats,.kpis{grid-template-columns:1fr 1fr}
   .stat{padding:12px}.stat b{font-size:1.3rem}
   .g3,.g4{grid-template-columns:1fr}
+  .dayrow input[type=date]{flex:1 1 100%;max-width:none;order:-1}
+  .dayrow .btn,.repbar .btn{flex:1 1 calc(50% - 8px)}
+  .repbar .btn{min-height:44px}
   #stbl th:nth-child(2),#stbl th:nth-child(3),#stbl th:nth-child(4),#stbl td:nth-child(2),#stbl td:nth-child(3),#stbl td:nth-child(4){display:none}
   #toast{bottom:20px}
 }
@@ -238,6 +241,11 @@ details.sub>.subin{padding:0 14px 12px;border-top:1px solid var(--bd)}
 .cchip.zero{opacity:.6}
 .savebar{margin-top:16px}
 @media(max-width:959px){.savebar{position:sticky;bottom:0;z-index:20;background:var(--card);border-top:1px solid var(--bd);margin:16px -14px -14px;padding:10px 14px calc(10px + env(safe-area-inset-bottom))}.savebar .btn.big{width:100%}}
+.dayrow{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:8px}
+.dayrow input[type=date]{width:auto;flex:0 1 190px;min-width:150px}
+.dlab{font-weight:600;font-size:1.05rem;margin:10px 0 8px}
+.repbar{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0 4px}
+.chip.on{background:var(--hd);border-color:var(--pri);font-weight:600}
 .brand{flex:1}
 .back{flex:0 0 auto;min-height:36px;padding:4px 12px;margin-right:4px;border-radius:9px;border:1px solid rgba(255,255,255,.3);background:transparent;color:#fff;font:inherit;font-weight:600;font-size:.9rem;cursor:pointer;white-space:nowrap}
 .back:hover{background:rgba(255,255,255,.1)}
@@ -374,6 +382,7 @@ function seedData(){
 function normData(d){
   d=d&&typeof d==='object'?d:{};
   ['cats','subs','items','entries'].forEach(k=>{if(!Array.isArray(d[k]))d[k]=[]});
+  (d.cats||[]).forEach(c=>{c.kind=c.kind||'coil';c.sizes=Array.isArray(c.sizes)?c.sizes:[];c.colors=Array.isArray(c.colors)?c.colors:[]});
   d.items.forEach(i=>{i.prices=Array.isArray(i.prices)?i.prices:[];i.colors=Array.isArray(i.colors)?i.colors.filter(Boolean):[];i.cstart=(i.cstart&&typeof i.cstart==='object')?i.cstart:{};for(const k in i.cstart)i.cstart[k]=+i.cstart[k]||0;i.mpc=+i.mpc||0;i.start=+i.start||0;i.low=+i.low||0;i.target=+i.target||0;i.unit=i.unit||(i.mpc?'coil':'piece')});
   d.entries.forEach(e=>{e.snap=e.snap||{};e.color=e.color||''});
   d.lastBackup=d.lastBackup||null;
@@ -449,6 +458,25 @@ const isLegacy=(i,v)=>i.colors.length>0&&!v.color;
 function rowsOf(items){const o=[];items.forEach(i=>variants(i).forEach(v=>o.push({i,v})));return o}
 const rowName=r=>esc(r.i.name)+(r.v.color?'<span class="colr">'+sw(r.v.color)+esc(r.v.color)+'</span>':(r.v.label?' <span class="mut small">· '+esc(r.v.label)+'</span>':''));
 const rowText=r=>r.i.name+(r.v.color?' ('+r.v.color+')':r.v.label?' - '+r.v.label:'');
+const catKind=c=>(c&&c.kind)||'coil';
+const catOfItem=i=>catById((subById(i.subId)||{}).catId);
+const STD_WIRE_SIZES=['1.0 sqmm','1.5 sqmm','2.5 sqmm','4.0 sqmm','6.0 sqmm'];
+const catSizes=c=>c&&c.sizes&&c.sizes.length?c.sizes:(catKind(c)==='coil'?STD_WIRE_SIZES:[]);
+const catPalette=c=>c&&c.colors&&c.colors.length?c.colors:(catKind(c)==='coil'?PRESET:[]);
+const unit1=it=>it&&it.mpc>0?'coil':((it&&it.unit)||'piece');
+const unitWord=it=>{if(it&&it.mpc>0)return 'coils';const u=(it&&it.unit)||'piece';return u.endsWith('s')?u:u+'s'};
+function colorOptsHTML(items,sel){
+  const g={};
+  items.forEach(i=>{const c=catOfItem(i),k=c?c.name:'';i.colors.forEach(col=>{g[k]=g[k]||[];if(!g[k].some(y=>y.toLowerCase()===col.toLowerCase()))g[k].push(col)})});
+  const ks=Object.keys(g),opt=c=>'<option value="'+esc(c)+'"'+(c===sel?' selected':'')+'>'+esc(c)+'</option>';
+  if(!ks.length)return{html:'',n:0};
+  return{html:ks.length>1?ks.map(k=>'<optgroup label="'+esc(k)+'">'+g[k].map(opt).join('')+'</optgroup>').join(''):g[ks[0]].map(opt).join(''),n:ks.reduce((a,k)=>a+g[k].length,0)};
+}
+function copyText(t){
+  if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(t).then(()=>toast('Copied to clipboard'),()=>fallbackCopy(t));
+  else fallbackCopy(t);
+}
+const shiftDay=(d,n)=>{const t=new Date(d+'T00:00:00');t.setDate(t.getDate()+n);return t.getFullYear()+'-'+pad(t.getMonth()+1)+'-'+pad(t.getDate())};
 const rs=n=>'₹'+Math.round(n).toLocaleString('en-IN');
 const priceAt=(it,date)=>{let r=null;for(const p of it.prices)if(p.from<=date)r=p;return r||it.prices[0]||null};
 const rateAt=(it,date)=>{const r=priceAt(it,date);return r?r.rate:0};
@@ -467,12 +495,12 @@ const epath=e=>{const s=infoOf(e);return esc(s.cat+' › '+s.sub+' › '+nameOf(
 function fmtQ(q,it){
   q=r2(q||0);const mpc=it&&it.mpc>0?it.mpc:0;
   if(mpc){const c=r2(q/mpc),u=(it.unit||'coil');return c+' '+(Math.abs(c)===1?u:u+'s')}
-  return q+' '+((it&&it.unit)||'pcs');
+  {const u=(it&&it.unit)||'piece';return q+' '+(Math.abs(q)===1||u.endsWith('s')?u:u+'s')}
 }
 const rawU=(q,it)=>it&&it.mpc>0?r2(q/it.mpc):q;
 const newT=()=>({m:0,p:0});
 const addT=(t,q,mpc)=>{if(mpc>0)t.m=r2(t.m+q/mpc);else t.p=r2(t.p+q)};
-const fmtT=t=>{const a=[];if(t.m)a.push(t.m.toLocaleString()+(Math.abs(t.m)===1?' coil':' coils'));if(t.p)a.push(t.p.toLocaleString()+' pcs');return a.join(' + ')||'0'};
+const fmtT=t=>{const a=[];if(t.m)a.push(t.m.toLocaleString()+(Math.abs(t.m)===1?' coil':' coils'));if(t.p)a.push(t.p.toLocaleString()+(Math.abs(t.p)===1?' piece':' pieces'));return a.join(' + ')||'0'};
 const T4=()=>({a:newT(),s:newT(),j:newT(),c:newT()});
 function addRow(T,s,i){const m=i.mpc||0;addT(T.a,s.tot,m);addT(T.s,s.sold,m);addT(T.j,s.adj,m);addT(T.c,s.cur,m)}
 const mergeT1=(T,U)=>{T.m=r2(T.m+U.m);T.p=r2(T.p+U.p)};
@@ -541,8 +569,8 @@ function wirePicker(id,all,noItem,cb,init){
     let h='',n=0;
     if(noItem){
       const set=[];
-      D.items.filter(x=>(!c.value||catOfSub(x.subId)===c.value)&&(!s.value||x.subId===s.value)).forEach(x=>x.colors.forEach(k=>{if(!set.some(y=>y.toLowerCase()===k.toLowerCase()))set.push(k)}));
-      n=set.length;h='<option value="">All colors</option>'+set.map(k=>'<option value="'+esc(k)+'">'+esc(k)+'</option>').join('');
+      const r=colorOptsHTML(D.items.filter(x=>(!c.value||catOfSub(x.subId)===c.value)&&(!s.value||x.subId===s.value)),'');
+      n=r.n;h='<option value="">All colors</option>'+r.html;
     }else{
       const it=itemById(i.value);
       if(it&&it.colors.length){
@@ -583,7 +611,7 @@ const pickedItem=id=>{const el=$('#'+id+'i');return el?itemById(el.value):null};
 const qtyHTML=id=>'<div class="qrow"><input id="'+id+'q" type="number" inputmode="decimal" min="0" step="any" placeholder="Quantity"><span class="ul" id="'+id+'l"></span></div>';
 function syncUnit(id,it){
   const l=$('#'+id+'l');if(!l)return;
-  l.textContent=it?(it.mpc>0?'coils':it.unit):'';
+  l.textContent=it?unitWord(it):'';
 }
 function readQty(id,it){
   const v=parseFloat($('#'+id+'q').value);
@@ -733,7 +761,7 @@ function pgDash(){
   '<div class="card"><h3>Look up stock and sales</h3><p class="lede" style="margin-bottom:10px">Choose a subcategory, size or color to see how many coils are left and how many were sold today, this month and this year.</p><div class="g3">'+
   '<label>Subcategory<select id="dsub"><option value="">All subcategories</option>'+D.subs.map(x=>'<option value="'+x.id+'"'+(DF.sub===x.id?' selected':'')+'>'+esc(x.name)+'</option>').join('')+'</select></label>'+
   '<label>Size<select id="dsz"><option value="">All sizes</option>'+[...new Set(D.items.map(i=>i.name))].map(n=>'<option value="'+esc(n)+'"'+(DF.size===n?' selected':'')+'>'+esc(n)+'</option>').join('')+'</select></label>'+
-  '<label>Color<select id="dcol"><option value="">All colors</option>'+[...new Set([].concat(...D.items.map(i=>i.colors)))].map(c=>'<option value="'+esc(c)+'"'+(DF.color===c?' selected':'')+'>'+esc(c)+'</option>').join('')+'</select></label></div>'+
+  '<label>Color<select id="dcol"><option value="">All colors</option>'+colorOptsHTML(D.items,DF.color).html+'</select></label></div>'+
   '<div id="dstrip"></div><div class="tw" id="dtbl"></div></div>');
   $('#dsub').onchange=e=>{DF.sub=e.target.value;drawDash()};
   $('#dsz').onchange=e=>{DF.size=e.target.value;drawDash()};
@@ -782,12 +810,13 @@ function drawDash(){
 /* ---------- stock table ---------- */
 function pgStock(){
   const sizes=[...new Set(D.items.map(i=>i.name))];
-  page('<div class="card"><h2>Stock</h2><p class="lede">How many coils you have right now, size by size and color by color. Red rows are out of stock, yellow rows are low.</p><div class="g2"><label>Search<input id="sq" value="'+esc(FS.q)+'" placeholder="Search item, size, color, company..."></label><label>Size / item name<select id="sz"><option value="">All sizes</option>'+sizes.map(s=>'<option'+(s===FS.size?' selected':'')+'>'+esc(s)+'</option>').join('')+'</select></label></div>'+pickerHTML('f',true,true)+'</div><div class="card"><div class="tw" id="stbl"></div></div>');
+  page('<div class="card"><h2>Stock</h2><p class="lede">What you have in stock right now, size by size and color by color. Red rows are out of stock, yellow rows are low. Use the buttons to copy, share, export or print this list.</p><div class="g2"><label>Search<input id="sq" value="'+esc(FS.q)+'" placeholder="Search item, size, color, company..."></label><label>Size / item name<select id="sz"><option value="">All sizes</option>'+sizes.map(s=>'<option'+(s===FS.size?' selected':'')+'>'+esc(s)+'</option>').join('')+'</select></label></div>'+pickerHTML('f',true,true)+'<label class="chk" style="margin-top:10px"><input type="checkbox" id="shz"'+(FS.hide0?' checked':'')+'>Hide items with 0 stock</label><div class="repbar noprint"><button class="btn sm" data-a="sCopy" type="button">Copy as text</button><button class="btn sm" data-a="sWa" type="button">Share on WhatsApp</button><button class="btn sm sec" data-a="sCsv" type="button">Export CSV</button><button class="btn sm sec" data-a="sPrint" type="button">Print</button></div></div><div class="card"><div class="printhead" id="sph"></div><div class="tw" id="stbl"></div></div>');
+  $('#shz').onchange=e=>{FS.hide0=e.target.checked;drawStock()};
   $('#sq').oninput=e=>{FS.q=e.target.value;drawStock()};
   $('#sz').onchange=e=>{FS.size=e.target.value;drawStock()};
   wirePicker('f',true,true,()=>{FS.cat=$('#fc').value;FS.sub=$('#fs').value;FS.color=$('#fcol').value;drawStock()},{cat:FS.cat,sub:FS.sub,color:FS.color});
 }
-function drawStock(){
+function stockRows(){
   const S=stats(),q=FS.q.trim().toLowerCase();
   const items=D.items.filter(i=>{
     const sb=subById(i.subId)||{},ct=catById(sb.catId)||{};
@@ -800,9 +829,40 @@ function drawStock(){
     const st=S[r.v.key],sb=subById(r.i.subId)||{},ct=catById(sb.catId)||{};
     if(FS.color&&r.v.color!==FS.color)return false;
     if(isLegacy(r.i,r.v)&&st.cur===0)return false;
+    if(FS.hide0&&st.cur<=0)return false;
     return !q||(ct.name+' '+sb.name+' '+rowText(r)).toLowerCase().includes(q);
   });
-  if(!rows.length){$('#stbl').innerHTML='<div class="empty"><b>No wires to show</b>Nothing matches your search, or no wires are added yet.<br><button class="btn" data-a="go" data-id="manage">Open Manage</button></div>';return}
+  return{S,rows};
+}
+function stockFilterText(){
+  return[FS.cat&&(catById(FS.cat)||{}).name,FS.sub&&(subById(FS.sub)||{}).name,FS.size,FS.color,FS.q.trim()&&'"'+FS.q.trim()+'"',FS.hide0&&'items with stock only'].filter(Boolean).join(', ');
+}
+function stockStatus(r,s){return isLegacy(r.i,r.v)?'':s.cur<=0?'Out of stock':needsOrder(r.i,s.cur)?'Low':'OK'}
+function stockText(){
+  const{S,rows}=stockRows(),ft=stockFilterText(),T=newT();
+  let t='*Stock report*\n'+acct.shop+' · '+fd(today())+'\n'+(ft?'Filter: '+ft+'\n':'');
+  groups(rows).forEach(g=>g.subs.forEach(sg=>{
+    t+='\n*'+g.cat.name+' › '+sg.sub.name+'*\n';
+    sg.rows.forEach(r=>{
+      const s=S[r.v.key],st=stockStatus(r,s);
+      t+=r.i.name+(r.v.color?' '+r.v.color:(r.v.label?' (old stock)':''))+': '+fmtQ(s.cur,r.i)+(st&&st!=='OK'?' ('+st.toLowerCase()+')':'')+'\n';
+      addT(T,s.cur,r.i.mpc||0);
+    });
+  }));
+  return rows.length?t+'\nTotal: '+fmtT(T)+'\n':t+'\nNo items match these filters.\n';
+}
+App.sCopy=()=>copyText(stockText());
+App.sWa=()=>window.open('https://wa.me/?text='+encodeURIComponent(stockText()),'_blank');
+App.sCsv=()=>{
+  const{S,rows}=stockRows(),out=[['Category','Subcategory','Item','Color','Stock','Unit','Status']];
+  rows.forEach(r=>{const s=S[r.v.key],p=snapOf(r.i,r.v.color);out.push([p.cat,p.sub,p.name,r.v.color||(r.v.label?'Old stock':''),rawU(s.cur,r.i),unitWord(r.i),stockStatus(r,s)])});
+  download('stock-report-'+today()+'.csv','﻿'+csvText(out),'text/csv');
+};
+App.sPrint=()=>window.print();
+function drawStock(){
+  const{S,rows}=stockRows(),ft=stockFilterText();
+  $('#sph').innerHTML='<b>Stock report</b> · '+esc(acct.shop)+' · '+esc(fd(today()))+(ft?'<br><span class="small">Filter: '+esc(ft)+'</span>':'');
+  if(!rows.length){$('#stbl').innerHTML='<div class="empty"><b>No items to show</b>Nothing matches your search or filters, or no items are added yet.<br><button class="btn" data-a="go" data-id="manage">Open Manage</button></div>';return}
   let h='<table><thead><tr><th>Item</th><th>Total Stock Added</th><th>Total Sold</th><th>Adjusted (net)</th><th>Current Stock Available</th><th>Status</th></tr></thead><tbody>';
   const G=T4();
   groups(rows).forEach(g=>{
@@ -835,11 +895,11 @@ function pgEntry(kind){
   const NOTEH={sale:'Customer or contractor name. It helps you find this sale later in History.',stock:'Supplier name or bill number, if you want to remember it.',adj:'Write what happened. Needed when the reason is Other.'};
   const n2=kind==='adj'?3:2;
   page('<div class="card"><h2>'+title+'</h2><p class="lede">'+LEDE[kind]+'</p>'+
-  '<div class="step"><i>1</i>Choose the wire</div>'+pickerHTML('p',false,false)+'<div id="pcur" class="info"></div>'+
+  '<div class="step"><i>1</i>Choose the item</div>'+pickerHTML('p',false,false)+'<div id="pcur" class="info"></div>'+
   (kind==='adj'?'<div class="step"><i>2</i>What happened?</div><div class="g2"><label>Increase or decrease?<select id="pdir"><option value="in">Increase</option><option value="out">Decrease</option></select><span class="hint">Increase adds coils to stock. Decrease removes coils.</span></label><label>Reason<select id="prs">'+REASONS.map(r=>'<option>'+r+'</option>').join('')+'</select><span class="hint">Pick the closest reason. If you pick Other, write a note.</span></label></div>':'')+
-  '<div class="step"><i>'+n2+'</i>'+(kind==='sale'?'How many coils did you sell?':kind==='stock'?'How many coils came in?':'How many coils?')+'</div>'+
-  '<div class="g2"><label>Quantity (coils)'+qtyHTML('p')+'<span class="hint">Whole coils. Use 0.5 for half a coil.</span></label><label>Date<input type="date" id="pd" value="'+today()+'"><span class="hint">Today by default. Change it only to enter an older record.</span></label></div>'+
-  (kind==='stock'?'<div class="step"><i>3</i>Price of these coils</div><div class="g3"><label>MRP per coil (₹)<input id="pmrp" type="number" min="0" step="any" inputmode="decimal"><span class="hint">The maximum retail price of one coil.</span></label><label>Discount %<input id="pdisc" type="number" min="0" max="100" step="any" inputmode="decimal"><span class="hint">Your discount off the MRP.</span></label><label>Net rate per coil (₹)<input id="prate" readonly><span class="hint">MRP minus discount. This is the selling rate counted in Sales ₹.</span></label></div><p class="mut small" id="pnote"></p>':'')+
+  '<div class="step"><i>'+n2+'</i>'+'<span id="pst2">'+(kind==='sale'?'How many coils did you sell?':kind==='stock'?'How many coils came in?':'How many coils?')+'</span></div>'+
+  '<div class="g2"><label><span id="pql">Quantity (coils)</span>'+qtyHTML('p')+'<span class="hint" id="pqh">Whole coils. Use 0.5 for half a coil.</span></label><label>Date<input type="date" id="pd" value="'+today()+'"><span class="hint">Today by default. Change it only to enter an older record.</span></label></div>'+
+  (kind==='stock'?'<div class="step"><i>3</i>Price of these coils</div><div class="g3"><label><span id="plm">MRP per coil (₹)</span><input id="pmrp" type="number" min="0" step="any" inputmode="decimal"><span class="hint">The maximum retail price of one coil.</span></label><label>Discount %<input id="pdisc" type="number" min="0" max="100" step="any" inputmode="decimal"><span class="hint">Your discount off the MRP.</span></label><label><span id="pln">Net rate per coil (₹)</span><input id="prate" readonly><span class="hint">MRP minus discount. This is the selling rate counted in Sales ₹.</span></label></div><p class="mut small" id="pnote"></p>':'')+
   '<div class="step"><i>'+(kind==='stock'?4:n2+1)+'</i>Note (optional)</div><label><input id="pn" maxlength="200"><span class="hint">'+NOTEH[kind]+'</span></label>'+
   '<div class="savebar"><div id="pmsg"></div><button class="btn big" id="psave" type="button">'+({sale:'Save sale',stock:'Add stock',adj:'Save adjustment'}[kind])+'</button></div></div>');
   let lastPI='';
@@ -848,11 +908,16 @@ function pgEntry(kind){
     if(!it||it.id===lastPI)return;lastPI=it.id;
     const cp=it.prices.length?it.prices[it.prices.length-1]:null;
     $('#pmrp').value=cp?cp.mrp:'';$('#pdisc').value=cp?cp.disc:'';netUpd();
-    $('#pnote').textContent=cp?'Current price: '+rs(cp.rate)+' per coil. Change the boxes only if the price changed. A new price applies to this size in all colors.':'No price set for this size yet. Enter MRP and discount to see sales in rupees.';
+    $('#pnote').textContent=cp?'Current price: '+rs(cp.rate)+' per '+unit1(it)+'. Change the boxes only if the price changed. A new price applies to this size in all colors.':'No price set for this size yet. Enter MRP and discount to see sales in rupees.';
   };
   if(kind==='stock'){$('#pmrp').oninput=netUpd;$('#pdisc').oninput=netUpd}
   const upd=()=>{
-    const it=pickedItem('p');syncUnit('p',it,kind==='stock'?'coils':'meters');if(kind==='stock')fillPrice(it);
+    const it=pickedItem('p');syncUnit('p',it);if(kind==='stock')fillPrice(it);
+    {const uw=it?unitWord(it):'coils',u1=it?unit1(it):'coil';
+     $('#pql').textContent='Quantity ('+uw+')';
+     $('#pqh').textContent=it&&!(it.mpc>0)?'Whole '+uw+' only.':'Whole coils. Use 0.5 for half a coil.';
+     $('#pst2').textContent=kind==='sale'?'How many '+uw+' did you sell?':kind==='stock'?'How many '+uw+' came in?':'How many '+uw+'?';
+     if(kind==='stock'){$('#plm').textContent='MRP per '+u1+' (₹)';$('#pln').textContent='Net rate per '+u1+' (₹)'}}
     {const cl=$('#pcol');if(cl&&cl._rebuild)cl._rebuild()}
     let t='Please choose an item.';
     if(it){
@@ -900,7 +965,7 @@ function pgEntry(kind){
 }
 
 /* ---------- reorder ---------- */
-let SF={fy:'',cat:'',sub:'',size:'',color:'',per:'fy',view:'Subcategory'};
+let SF={fy:'',cat:'',sub:'',size:'',color:'',per:'fy',view:'Subcategory',day:'',dview:'Subcategory'};
 const fyOf=d=>{const y=+d.slice(0,4),m=+d.slice(5,7);return m>=4?y:y-1};
 const fyLab=n=>n+'-'+String(n+1).slice(2);
 const qOf=d=>{const m=+d.slice(5,7);return m>=4&&m<=6?1:m>=7&&m<=9?2:m>=10&&m<=12?3:4};
@@ -908,6 +973,12 @@ const shortRs=n=>n>=100000?(n/100000).toFixed(1)+'L':n>=1000?Math.round(n/1000)+
 function saleAmt(e){
   const it=liveOf(e),sn=infoOf(e),mpc=(it?it.mpc:sn.mpc)||0,coils=mpc>0?e.qty/mpc:e.qty;
   return coils*(it?rateAt(it,e.date):(e.rate!=null?e.rate:(sn.rate||0)));
+}
+function cntTxt(x){
+  const a=[];
+  if(x.c)a.push(r2(x.c)+(x.c===1?' coil':' coils'));
+  if(x.p)a.push(r2(x.p)+(x.p===1?' piece':' pieces'));
+  return a.join(' + ')||'0';
 }
 function saleRows(){
   const out=[];
@@ -918,19 +989,33 @@ function saleRows(){
     if(SF.sub&&sn.subId!==SF.sub)return;
     if(SF.size&&sn.name!==SF.size)return;
     if(SF.color&&(e.color||'')!==SF.color)return;
-    const mpc=(it?it.mpc:sn.mpc)||0,coils=mpc>0?e.qty/mpc:e.qty,rate=it?rateAt(it,e.date):(e.rate!=null?e.rate:(sn.rate||0));
-    out.push({date:e.date,coils,amt:coils*rate,cat:sn.cat,sub:sn.sub,size:sn.name,color:e.color||'',nop:rate===0});
+    const mpc=(it?it.mpc:sn.mpc)||0,coils=mpc>0?e.qty/mpc:e.qty,rate=e.rate!=null&&!it?e.rate:(it?rateAt(it,e.date):(sn.rate||0));
+    out.push({date:e.date,ts:e.ts||0,note:e.note||'',coils,pc:!(mpc>0),unit:mpc>0?'coil':((it?it.unit:sn.unit)||'piece'),rate,amt:coils*rate,cat:sn.cat,sub:sn.sub,size:sn.name,color:e.color||'',nop:rate===0});
   });
   return out;
 }
+function bkTable(rows,view){
+  const mc=new Set(rows.filter(r=>r.color).map(r=>r.cat)).size>1;
+  const V={Subcategory:r=>r.sub,Size:r=>r.size,Color:r=>r.color?(mc?r.cat+' · '+r.color:r.color):'No color',Product:r=>r.sub+' · '+r.size,Category:r=>r.cat};
+  const g={};let tot=0;
+  rows.forEach(r=>{const k=V[view](r);g[k]=g[k]||{a:0,c:0,p:0};g[k].a+=r.amt;if(r.pc)g[k].p+=r.coils;else g[k].c+=r.coils;tot+=r.amt});
+  const ks=Object.keys(g).sort((a,b)=>g[b].a-g[a].a);
+  if(!ks.length)return '<p class="mut">No sales in this period.</p>';
+  const TT={c:0,p:0};ks.forEach(k=>{TT.c+=g[k].c;TT.p+=g[k].p});
+  return '<table><thead><tr><th>'+view+'</th><th>Sold</th><th>Sales (₹)</th><th>Share</th></tr></thead><tbody>'+ks.map(k=>{const pc=tot>0?Math.round(g[k].a/tot*100):0;return'<tr><td>'+(view==='Color'?sw(k.split(' · ').pop()):'')+esc(k)+'</td><td>'+cntTxt(g[k])+'</td><td>'+rs(g[k].a)+'</td><td><span class="shbar"><i style="width:'+pc+'%"></i></span>'+pc+'%</td></tr>'}).join('')+'<tr class="grand"><td>Total</td><td>'+cntTxt(TT)+'</td><td>'+rs(tot)+'</td><td></td></tr></tbody></table>';
+}
+const BKV=['Subcategory','Size','Color','Product','Category'];
+const bkTabs=(cur,act)=>BKV.map(k=>'<button type="button" class="chip'+(cur===k?' on':'')+'" data-a="'+act+'" data-id="'+k+'">'+k+'</button>').join('');
 function pgSales(){
   if(!SF.fy)SF.fy=String(fyOf(today()));
+  if(!SF.day)SF.day=today();
   const fys=new Set([fyOf(today())]);D.entries.forEach(e=>{if(e.type==='sale'&&e.date)fys.add(fyOf(e.date))});
   const sizes=[...new Set(D.items.map(i=>i.name))];
   page('<div class="card"><h2>Sales in rupees</h2><p class="lede">How much money your sales made. Each sale is counted at the net rate of its day. Use the filters to look at one wire, size or color.</p>'+pickerHTML('sl',true,true)+
   '<div class="g2"><label>Financial year (April to March)<select id="slfy">'+[...fys].sort().reverse().map(y=>'<option value="'+y+'"'+(String(y)===SF.fy?' selected':'')+'>'+fyLab(y)+'</option>').join('')+'</select></label>'+
   '<label>Size<select id="slsz"><option value="">All sizes</option>'+sizes.map(n=>'<option value="'+esc(n)+'"'+(SF.size===n?' selected':'')+'>'+esc(n)+'</option>').join('')+'</select></label></div>'+
   '<div id="skp" class="kpis"></div><div id="smiss"></div></div>'+
+  '<div class="card"><h3>Check sales on any day</h3><p class="lede" style="margin-bottom:10px">Pick a date on the calendar to see what was sold that day and the amount in rupees. The filters above also apply.</p><div class="dayrow"><input type="date" id="sdate" max="'+today()+'" value="'+SF.day+'"><button class="btn sm sec" type="button" data-a="dayPrev" aria-label="Previous day">← Previous</button><button class="btn sm sec" type="button" data-a="dayNext" aria-label="Next day">Next →</button><button class="btn sm" type="button" data-a="dayToday">Today</button><button class="btn sm sec" type="button" data-a="dayYest">Yesterday</button></div><div id="dsum"></div><div class="tw" id="dlist"></div><div id="dtabs" class="chips" style="margin-top:14px"></div><div class="tw" id="dbk"></div></div>'+
   '<div class="card"><h3>Sales by month</h3><div id="sbar"></div><h3>Sales by quarter</h3><div id="sq" class="kpis"></div><h3>Sales by year</h3><div class="tw" id="sy"></div></div>'+
   '<div class="card"><h3>Breakdown</h3><div class="g2"><label>Period<select id="slper"><option value="day">Today</option><option value="month">This month</option><option value="quarter">This quarter</option><option value="fy">Selected financial year</option><option value="all">All time</option></select></label><div></div></div>'+
   '<div class="chips" id="stabs"></div><div class="tw" id="sbk"></div></div>');
@@ -938,11 +1023,12 @@ function pgSales(){
   $('#slfy').onchange=e=>{SF.fy=e.target.value;drawSales()};
   $('#slsz').onchange=e=>{SF.size=e.target.value;drawSales()};
   $('#slper').value=SF.per;$('#slper').onchange=e=>{SF.per=e.target.value;drawSales()};
+  $('#sdate').onchange=e=>{if(e.target.value){SF.day=e.target.value>today()?today():e.target.value;drawDay()}};
 }
 function drawSales(){
   const rows=saleRows(),t=today(),fyS=+SF.fy,tf=fyOf(t),tq=qOf(t);
-  const sum=f=>{let a=0,c=0;rows.forEach(r=>{if(f(r)){a+=r.amt;c+=r.coils}});return{a,c}};
-  const kp=(l,x)=>'<div><span>'+l+'</span><b>'+rs(x.a)+'</b><span>'+r2(x.c)+(x.c===1?' coil':' coils')+'</span></div>';
+  const sum=f=>{const x={a:0,c:0,p:0};rows.forEach(r=>{if(f(r)){x.a+=r.amt;if(r.pc)x.p+=r.coils;else x.c+=r.coils}});return x};
+  const kp=(l,x)=>'<div><span>'+l+'</span><b>'+rs(x.a)+'</b><span>'+cntTxt(x)+'</span></div>';
   $('#skp').innerHTML=kp('Today',sum(r=>r.date===t))+kp('This month',sum(r=>r.date.slice(0,7)===t.slice(0,7)))+kp('This quarter',sum(r=>fyOf(r.date)===tf&&qOf(r.date)===tq))+kp('This financial year',sum(r=>fyOf(r.date)===tf));
   const miss=[...new Set(rows.filter(r=>r.nop).map(r=>r.sub+' › '+r.size))];
   $('#smiss').innerHTML=miss.length?'<div class="warn">Set a price (Manage, then ₹ Prices) for: '+miss.map(esc).join(', ')+'. Their sales show as ₹0 for now.</div>':'';
@@ -952,16 +1038,32 @@ function drawSales(){
   $('#sbar').innerHTML='<div class="sbars">'+mo.map(m=>{const v=mt[m.k]||0;return'<div><span>'+(v?shortRs(v):'')+'</span><i style="height:'+Math.round(v/mx*96)+'px"></i></div>'}).join('')+'</div><div class="slab">'+mo.map(m=>'<div>'+m.l+'</div>').join('')+'</div>';
   const QL=['Apr-Jun','Jul-Sep','Oct-Dec','Jan-Mar'];
   $('#sq').innerHTML=QL.map((l,i)=>kp('Q'+(i+1)+' ('+l+')',sum(r=>fyOf(r.date)===fyS&&qOf(r.date)===i+1))).join('');
-  const ym={};rows.forEach(r=>{const y=fyOf(r.date);ym[y]=ym[y]||{a:0,c:0};ym[y].a+=r.amt;ym[y].c+=r.coils});
+  const ym={};rows.forEach(r=>{const y=fyOf(r.date);ym[y]=ym[y]||{a:0,c:0,p:0};ym[y].a+=r.amt;if(r.pc)ym[y].p+=r.coils;else ym[y].c+=r.coils});
   const ys=Object.keys(ym).sort().reverse();
-  $('#sy').innerHTML=ys.length?'<table><thead><tr><th>Financial year</th><th>Coils sold</th><th>Sales (₹)</th></tr></thead><tbody>'+ys.map(y=>'<tr><td>'+fyLab(+y)+'</td><td>'+r2(ym[y].c)+'</td><td><b>'+rs(ym[y].a)+'</b></td></tr>').join('')+'</tbody></table>':'<p class="mut">No sales yet.</p>';
+  $('#sy').innerHTML=ys.length?'<table><thead><tr><th>Financial year</th><th>Sold</th><th>Sales (₹)</th></tr></thead><tbody>'+ys.map(y=>'<tr><td>'+fyLab(+y)+'</td><td>'+cntTxt(ym[y])+'</td><td><b>'+rs(ym[y].a)+'</b></td></tr>').join('')+'</tbody></table>':'<p class="mut">No sales yet.</p>';
   const inP=r=>SF.per==='day'?r.date===t:SF.per==='month'?r.date.slice(0,7)===t.slice(0,7):SF.per==='quarter'?(fyOf(r.date)===tf&&qOf(r.date)===tq):SF.per==='fy'?fyOf(r.date)===fyS:true;
-  const V={Subcategory:r=>r.sub,Size:r=>r.size,Color:r=>r.color||'No color',Product:r=>r.sub+' · '+r.size,Category:r=>r.cat};
-  $('#stabs').innerHTML=Object.keys(V).map(k=>'<button type="button" class="chip" style="'+(SF.view===k?'background:var(--hd);font-weight:700':'')+'" data-a="sview" data-id="'+k+'">'+k+'</button>').join('');
-  const g={};let tot=0;rows.filter(inP).forEach(r=>{const k=V[SF.view](r);g[k]=g[k]||{a:0,c:0};g[k].a+=r.amt;g[k].c+=r.coils;tot+=r.amt});
-  const ks=Object.keys(g).sort((a,b)=>g[b].a-g[a].a);
-  $('#sbk').innerHTML=ks.length?'<table><thead><tr><th>'+SF.view+'</th><th>Coils sold</th><th>Sales (₹)</th><th>Share</th></tr></thead><tbody>'+ks.map(k=>{const pc=tot>0?Math.round(g[k].a/tot*100):0;return'<tr><td>'+(SF.view==='Color'?sw(k):'')+esc(k)+'</td><td>'+r2(g[k].c)+'</td><td>'+rs(g[k].a)+'</td><td><span class="shbar"><i style="width:'+pc+'%"></i></span>'+pc+'%</td></tr>'}).join('')+'<tr class="grand"><td>Total</td><td>'+r2(ks.reduce((a,k)=>a+g[k].c,0))+'</td><td>'+rs(tot)+'</td><td></td></tr></tbody></table>':'<p class="mut">No sales in this period.</p>';
+  $('#stabs').innerHTML=bkTabs(SF.view,'sview');
+  $('#sbk').innerHTML=bkTable(rows.filter(inP),SF.view);
+  drawDay();
 }
+function drawDay(){
+  if(!$('#dsum'))return;
+  const all=saleRows().filter(r=>r.date===SF.day).sort((a,b)=>a.ts-b.ts);
+  const lab=new Date(SF.day+'T00:00:00').toLocaleDateString('en-IN',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+  const x={a:0,c:0,p:0};all.forEach(r=>{x.a+=r.amt;if(r.pc)x.p+=r.coils;else x.c+=r.coils});
+  $('#sdate').value=SF.day;
+  $('#dsum').innerHTML='<p class="dlab">'+esc(lab)+(SF.day===today()?' <span class="tag g">Today</span>':'')+'</p><div class="kpis"><div><span>Total sales</span><b>'+rs(x.a)+'</b></div><div><span>Sold</span><b>'+cntTxt(x)+'</b></div><div><span>Number of sales</span><b>'+all.length+'</b></div></div>';
+  if(!all.length){$('#dlist').innerHTML='<div class="empty"><b>No sales on this day</b>Pick another date, or check the filters above.</div>';$('#dtabs').innerHTML='';$('#dbk').innerHTML='';return}
+  const tm=ts=>ts?new Date(ts).toLocaleTimeString('en-IN',{hour:'numeric',minute:'2-digit'}):'-';
+  $('#dlist').innerHTML='<table><thead><tr><th>Time</th><th>Item</th><th>Quantity</th><th>Rate</th><th>Amount</th></tr></thead><tbody>'+all.map(r=>'<tr><td>'+tm(r.ts)+'</td><td><b>'+esc(r.sub+' · '+r.size)+'</b>'+(r.color?'<span class="colr">'+sw(r.color)+esc(r.color)+'</span>':'')+(r.note?'<div class="mut small">'+esc(r.note)+'</div>':'')+'</td><td>'+cntTxt(r.pc?{c:0,p:r.coils}:{c:r.coils,p:0})+'</td><td>'+(r.rate?rs(r.rate)+' / '+esc(r.unit):'<span class="mut">no price</span>')+'</td><td><b>'+rs(r.amt)+'</b></td></tr>').join('')+'<tr class="grand"><td colspan="4">Total for the day</td><td>'+rs(x.a)+'</td></tr></tbody></table>';
+  $('#dtabs').innerHTML='<span class="mut small" style="align-self:center;margin-right:4px">Breakdown:</span>'+bkTabs(SF.dview,'dview');
+  $('#dbk').innerHTML=bkTable(all,SF.dview);
+}
+App.dview=id=>{SF.dview=id;drawDay()};
+App.dayPrev=()=>{SF.day=shiftDay(SF.day,-1);drawDay()};
+App.dayNext=()=>{const n=shiftDay(SF.day,1);SF.day=n>today()?today():n;drawDay()};
+App.dayToday=()=>{SF.day=today();drawDay()};
+App.dayYest=()=>{SF.day=shiftDay(today(),-1);drawDay()};
 App.sview=id=>{SF.view=id;drawSales()};
 function reorderRows(){
   const S=stats();
@@ -981,7 +1083,7 @@ function reorderText(){
   return t;
 }
 function pgReorder(){
-  page('<div class="card"><h2>Reorder List</h2><p class="lede">Wires that are finished or running low, so you know what to order. The most urgent are at the top.</p>'+pickerHTML('o',true,true)+
+  page('<div class="card"><h2>Reorder List</h2><p class="lede">Items that are finished or running low, so you know what to order. The most urgent are at the top.</p>'+pickerHTML('o',true,true)+
   '<div class="row noprint"><button class="btn sm" data-a="rCopy">Copy as text</button><button class="btn sm" data-a="rWa">Share on WhatsApp</button><button class="btn sm sec" data-a="rCsv">Export CSV</button><button class="btn sm sec" data-a="rPrint">Print</button></div><div class="tw" id="otbl"></div></div>');
   wirePicker('o',true,true,()=>{RF.cat=$('#oc').value;RF.sub=$('#os').value;RF.color=$('#ocol').value;drawReorder()},{cat:RF.cat,sub:RF.sub,color:RF.color});
 }
@@ -1026,7 +1128,7 @@ function rLabel(){
 /* show a quantity as: coils + meters, meters only, or coils only */
 function fmtU(q,it,u){
   q=r2(q||0);const mpc=it&&it.mpc>0?it.mpc:0;
-  if(!mpc)return q+' '+((it&&it.unit)||'pcs');
+  if(!mpc)return fmtQ(q,it);
   if(u==='m')return q+' m';
   if(u==='c'){const c=r2(q/mpc);return c+' '+(it.unit||'coil')+(Math.abs(c)===1?'':'s')}
   return fmtQ(q,it);
@@ -1037,7 +1139,7 @@ function mergeR(T,U){T.m=r2(T.m+U.m);T.p=r2(T.p+U.p);U.mp.forEach(x=>T.mp.add(x)
 function fmtR(T){
   const a=[];
   if(T.m)a.push(T.m.toLocaleString()+(Math.abs(T.m)===1?' coil':' coils'));
-  if(T.p)a.push(T.p.toLocaleString()+' pcs');
+  if(T.p)a.push(T.p.toLocaleString()+(Math.abs(T.p)===1?' piece':' pieces'));
   return a.join(' + ')||'0';
 }
 const newG=()=>({a:newR(),s:newR(),c:newR()});
@@ -1215,9 +1317,9 @@ App.delEntry=id=>{
 /* ---------- manage ---------- */
 const nameTaken=(list,name,except)=>list.some(x=>x.id!==except&&x.name.trim().toLowerCase()===name.toLowerCase());
 function pgManage(){
-  let h='<div class="card"><h3>Quick setup</h3><p class="mut small">One tap builds the standard list: category Wires &amp; Cables, lines Superio, Superio+, Classo+, Arizo+, Superior 200mtr+, sizes 1.0 to 6.0 sqmm, colors Red, Blue, Yellow, Green, Black. You can still change anything afterwards.</p><button class="btn" data-a="stdSetup">Set up standard wire list</button></div><div class="card"><h2>Manage</h2><p class="lede">Set up your wires: categories, subcategories, sizes, colors and prices. Tap a subcategory below to open it.</p><div class="row"><input id="newcat" placeholder="New category name (e.g. Switches)" maxlength="60"><button class="btn" data-a="addCat">Add Category</button></div></div>';
+  let h='<div class="card"><h3>Quick setup</h3><p class="mut small">One tap builds a ready list. You can still change anything afterwards.</p><div class="acts"><button class="btn" data-a="stdSetup">Set up standard wire list</button><button class="btn sec" data-a="pieceSetup">Add Geyser and Fan categories</button></div><p class="mut small">Wires: Superio, Superio+, Classo+, Arizo+ and Superior 200mtr+, sizes 1.0 to 6.0 sqmm, colors Red, Blue, Yellow, Green and Black. Geyser sizes: 3L, 5L, 6L, 10L, 15L, 25L. Fan sizes: 600mm, 1200mm. You add the Geyser and Fan subcategories and the fan colors yourself.</p></div><div class="card"><h2>Manage</h2><p class="lede">Set up your items: categories, subcategories, sizes, colors and prices. Tap a subcategory below to open it.</p><div class="g3"><label>New category name<input id="newcat" placeholder="e.g. Switches" maxlength="60"></label><label>Counted in<select id="newcatk"><option value="coil">Coils (wires)</option><option value="piece">Pieces (geyser, fan, switch)</option></select></label><label>Standard sizes (optional)<input id="newcats" placeholder="e.g. 3L, 5L, 10L" maxlength="200"><span class="hint">Separate with commas. Used when you add a subcategory.</span></label></div><button class="btn" data-a="addCat">Add category</button></div>';
   D.cats.forEach(c=>{
-    h+='<div class="card"><div class="rowh"><h3>'+esc(c.name)+'</h3><span><button class="btn sm sec" data-a="renCat" data-id="'+c.id+'">Rename</button> <button class="btn sm danger" data-a="delCat" data-id="'+c.id+'">Delete</button></span></div>';
+    h+='<div class="card"><div class="rowh"><h3>'+esc(c.name)+' <span class="mut small">· counted in '+(catKind(c)==='piece'?'pieces':'coils')+'</span></h3><span><button class="btn sm sec" data-a="catSettings" data-id="'+c.id+'">Sizes &amp; colors</button> <button class="btn sm sec" data-a="renCat" data-id="'+c.id+'">Rename</button> <button class="btn sm danger" data-a="delCat" data-id="'+c.id+'">Delete</button></span></div>';
     D.subs.filter(s=>s.catId===c.id).forEach(s=>{
       const nIt=D.items.filter(i=>i.subId===s.id).length;
       h+='<details class="sub" data-k="'+s.id+'"'+(MOPEN[s.id]?' open':'')+'><summary><span>'+esc(s.name)+' <span class="mut small">'+nIt+(nIt===1?' size':' sizes')+'</span></span></summary><div class="subin"><div class="acts"><button class="btn sm" data-a="addItem" data-id="'+s.id+'">+ Add size</button><button class="btn sm sec" data-a="subPrices" data-id="'+s.id+'">₹ Prices</button><button class="btn sm sec" data-a="subColors" data-id="'+s.id+'">Colors for all sizes</button><button class="btn sm sec" data-a="renSub" data-id="'+s.id+'">Rename</button><button class="btn sm danger" data-a="delSub" data-id="'+s.id+'">Delete</button></div>';
@@ -1228,7 +1330,8 @@ function pgManage(){
       });
       h+='</div></details>';
     });
-    h+='<div class="row"><input id="ns_'+c.id+'" placeholder="New subcategory (e.g. company or model)" maxlength="60"><button class="btn sm" data-a="addSub" data-id="'+c.id+'">Add Subcategory</button></div><label class="chk"><input type="checkbox" id="nsz_'+c.id+'">Also add sizes 1.0, 1.5, 2.5, 4.0, 6.0 sqmm (200 m coils) with colors Red, Blue, Yellow, Green, Black</label></div>';
+    const csz=catSizes(c),cpl=catPalette(c);
+    h+='<div class="row"><input id="ns_'+c.id+'" placeholder="New subcategory (e.g. brand or model)" maxlength="60"><button class="btn sm" data-a="addSub" data-id="'+c.id+'">Add subcategory</button></div>'+(csz.length?'<label class="chk"><input type="checkbox" id="nsz_'+c.id+'">Also add sizes '+esc(csz.join(', '))+(cpl.length?' with colors '+esc(cpl.join(', ')):'')+'</label>':'<p class="mut small">Tip: tap Sizes &amp; colors above to set standard sizes. Then a new subcategory can get all its sizes in one tap.</p>')+'</div>';
   });
   page(h);
 }
@@ -1242,7 +1345,7 @@ App.stdSetup=()=>modal('Set up the standard wire list?','<p>This uses the catego
     if(!sb){sb={id:uid(),catId:cat.id,name:nm};D.subs.push(sb)}else sb.name=nm;
     STD_SIZES.forEach(sz=>{
       let it=D.items.find(x=>x.subId===sb.id&&parseFloat(x.name)===parseFloat(sz));
-      if(!it){it={id:uid(),subId:sb.id,name:sz+' sqmm',unit:'coil',mpc:200,start:0,low:0,target:0,colors:[],cstart:{}};D.items.push(it)}
+      if(!it){it={id:uid(),subId:sb.id,name:sz+' sqmm',unit:'coil',mpc:200,start:0,low:0,target:0,colors:[],cstart:{},prices:[]};D.items.push(it)}
       PRESET.forEach(c=>{if(!it.colors.some(x=>x.toLowerCase()===c.toLowerCase()))it.colors.push(c)});
     });
   });
@@ -1252,14 +1355,32 @@ App.stdSetup=()=>modal('Set up the standard wire list?','<p>This uses the catego
 App.addCat=()=>{
   const n=$('#newcat').value.trim();if(!n)return toast('Please type a category name.');
   if(nameTaken(D.cats,n))return toast('That category already exists.');
-  D.cats.push({id:uid(),name:n});save();refresh();
+  const sz=[];$('#newcats').value.split(/[,\n]/).forEach(x=>{x=x.trim();if(x&&!sz.some(y=>y.toLowerCase()===x.toLowerCase()))sz.push(x)});
+  D.cats.push({id:uid(),name:n,kind:$('#newcatk').value,sizes:sz,colors:[]});save();refresh();
+};
+const PIECE_STD=[['Geyser',['3L','5L','6L','10L','15L','25L']],['Fan',['600mm','1200mm']]];
+App.pieceSetup=()=>modal('Add Geyser and Fan?','<p>This adds two categories counted in <b>pieces</b>: <b>Geyser</b> with sizes 3L, 5L, 6L, 10L, 15L, 25L and <b>Fan</b> with sizes 600mm, 1200mm.</p><p class="mut small">You then add the subcategories (brands or models) yourself, and tick "Also add sizes" when you add each one. Fan colors are typed by you and stay separate from wire colors. Nothing you already have is changed.</p>','Add categories',()=>{
+  PIECE_STD.forEach(([nm,sz])=>{
+    const c=D.cats.find(x=>x.name.trim().toLowerCase()===nm.toLowerCase());
+    if(!c)D.cats.push({id:uid(),name:nm,kind:'piece',sizes:sz.slice(),colors:[]});
+    else if(!c.sizes.length)c.sizes=sz.slice();
+  });
+  save();refresh();toast('Geyser and Fan categories are ready');
+});
+App.catSettings=id=>{
+  const c=catById(id);
+  modal('Sizes and colors: '+c.name,'<label>Standard sizes<input id="csz" value="'+esc(catSizes(c).join(', '))+'" placeholder="e.g. 3L, 5L, 10L"><span class="hint">Separate with commas. They are added to a new subcategory when you tick "Also add sizes".</span></label><label>Colors for this category<input id="ccl" value="'+esc(catPalette(c).join(', '))+'" placeholder="e.g. WH, BR, BL"><span class="hint">Your own color names, separated by commas. They show as tap options only for this category, so fan colors never mix with wire colors.</span></label>','Save',()=>{
+    const split=v=>{const o=[];v.split(/[,\n]/).forEach(x=>{x=x.trim();if(x&&!o.some(y=>y.toLowerCase()===x.toLowerCase()))o.push(x)});return o};
+    c.sizes=split($('#csz').value);c.colors=split($('#ccl').value);
+    save();refresh();
+  });
 };
 App.addSub=id=>{
   const el=$('#ns_'+id),n=el.value.trim();if(!n)return toast('Please type a subcategory name.');
   if(nameTaken(D.subs.filter(s=>s.catId===id),n))return toast('That subcategory already exists here.');
-  const sub={id:uid(),catId:id,name:n};D.subs.push(sub);
+  const ct=catById(id),sub={id:uid(),catId:id,name:n};D.subs.push(sub);
   const z=$('#nsz_'+id);
-  if(z&&z.checked)['1.0 sqmm','1.5 sqmm','2.5 sqmm','4.0 sqmm','6.0 sqmm'].forEach(nm=>D.items.push({id:uid(),subId:sub.id,name:nm,unit:'coil',mpc:200,start:0,low:0,target:0,colors:PRESET.slice(),cstart:{}}));
+  if(z&&z.checked){const pc=catKind(ct)==='piece';catSizes(ct).forEach(nm=>D.items.push({id:uid(),subId:sub.id,name:nm,unit:pc?'piece':'coil',mpc:pc?0:200,start:0,low:0,target:0,colors:catPalette(ct).slice(),cstart:{},prices:[]}))}
   save();refresh();
 };
 function renameBox(title,list,obj){
@@ -1349,29 +1470,37 @@ App.subPrices=id=>{
   const upd=e=>{const n=e.target.dataset.n;if(n===undefined)return;const m=parseFloat(ov.querySelector('.pm[data-n="'+n+'"]').value)||0,d=parseFloat(ov.querySelector('.pdc[data-n="'+n+'"]').value)||0;ov.querySelector('#pn'+n).textContent=m>0?rs(m*(1-d/100)):'-'};
   ov.addEventListener('input',upd);
 };
-const colorChips=sel=>{
-  sel=sel||[];
+const colorChips=(sel,pal,ph)=>{
+  sel=sel||[];pal=pal||PRESET;
   const set=new Set(sel.map(c=>c.toLowerCase()));
-  const extra=sel.filter(c=>!PRESET.some(p=>p.toLowerCase()===c.toLowerCase()));
-  return '<div class="chips">'+PRESET.map(c=>'<label class="chip"><input type="checkbox" class="cc" value="'+c+'"'+(set.has(c.toLowerCase())?' checked':'')+'>'+sw(c)+c+'</label>').join('')+'</div><label>Other colors (separate with commas)<input class="cx" maxlength="80" value="'+esc(extra.join(', '))+'" placeholder="e.g. White, Grey"></label>';
+  const extra=sel.filter(c=>!pal.some(p=>p.toLowerCase()===c.toLowerCase()));
+  return(pal.length?'<div class="chips">'+pal.map(c=>'<label class="chip"><input type="checkbox" class="cc" value="'+esc(c)+'"'+(set.has(c.toLowerCase())?' checked':'')+'>'+sw(c)+esc(c)+'</label>').join('')+'</div>':'<p class="mut small">No colors saved for this category yet. Type your own below.</p>')+'<label>'+(pal.length?'Other colors':'Colors')+' (separate with commas)<input class="cx" maxlength="80" value="'+esc(extra.join(', '))+'" placeholder="'+esc(ph||'e.g. White, Grey')+'"></label>';
 };
-function readColors(ov){
-  const out=[],add=c=>{c=String(c).trim().replace(/\s+/g,' ');if(c&&!out.some(x=>x.toLowerCase()===c.toLowerCase()))out.push(c.charAt(0).toUpperCase()+c.slice(1))};
+function readColors(ov,cap){
+  const out=[],add=c=>{c=String(c).trim().replace(/\s+/g,' ');if(c&&!out.some(x=>x.toLowerCase()===c.toLowerCase()))out.push(cap?c.charAt(0).toUpperCase()+c.slice(1):c)};
   ov.querySelectorAll('.cc:checked').forEach(x=>add(x.value));
   const cx=ov.querySelector('.cx');if(cx)cx.value.split(',').forEach(add);
   return out;
 }
+function addToPalette(ct,cols,cap){
+  if(!ct)return;
+  const pl=ct.colors&&ct.colors.length?ct.colors:(cap?PRESET.slice():[]);
+  cols.forEach(c=>{if(!pl.some(x=>x.toLowerCase()===c.toLowerCase()))pl.push(c)});
+  ct.colors=pl;
+}
 App.subColors=id=>{
-  const s=subById(id),its=D.items.filter(i=>i.subId===id);
+  const s=subById(id),its=D.items.filter(i=>i.subId===id),ct=catById(s.catId),cap=catKind(ct)==='coil';
   if(!its.length)return toast('Add items to this subcategory first.');
-  modal('Colors for all items in '+s.name,'<p class="mut small">The colors you tick are added to all '+its.length+' items in this subcategory. Colors an item already has are kept. Starting stock for a new color is 0. Stock you already counted stays as "No color (old stock)" until you move it with Adjust Stock.</p>'+colorChips([]),'Add colors',ov=>{
-    const cols=readColors(ov);if(!cols.length)return 'Please choose at least one color.';
+  modal('Colors for all items in '+s.name,'<p class="mut small">The colors you tick are added to all '+its.length+' items in this subcategory. Colors an item already has are kept. Starting stock for a new color is 0. Stock you already counted stays as "No color (old stock)" until you move it with Adjust Stock.</p>'+colorChips([],catPalette(ct),cap?'e.g. White, Grey':'e.g. WH, BR'),'Add colors',ov=>{
+    const cols=readColors(ov,cap);if(!cols.length)return 'Please choose at least one color.';
     its.forEach(i=>cols.forEach(c=>{if(!i.colors.some(x=>x.toLowerCase()===c.toLowerCase()))i.colors.push(c)}));
+    addToPalette(ct,cols,cap);
     save();refresh();
   });
 };
 function itemModal(subId,it){
   const edit=!!it,mpc0=edit?(it.mpc||0):0;
+  const catI=catById((subById(subId)||{}).catId),isPiece=catKind(catI)==='piece',CAP=catKind(catI)==='coil',PAL=catPalette(catI);
   // when editing a coil item, show the numbers in coils by default
   const f0=mpc0>0?mpc0:1;
   const v=x=>edit?r2((x||0)/f0):'';
@@ -1379,19 +1508,19 @@ function itemModal(subId,it){
   const ov=modal(edit?'Edit item':'Add item',
   '<label>Name or size<input id="in" maxlength="60" value="'+esc(it?it.name:'')+'" placeholder="e.g. 1.0 sqmm"></label>'+
   (edit&&mpc0===0?'<label>Unit label<input id="iu" maxlength="20" value="'+esc(it.unit)+'" placeholder="piece, box"></label>':'')+
-  '<div class="subbox"><b>Colors (optional)</b><div class="mut small">Tick the colors this item comes in. Stock is then tracked separately for each color.</div>'+colorChips(it?it.colors:[])+'</div>'+
-  '<p class="mut small">'+(edit&&mpc0===0?'':'All quantities below are in coils.')+'</p>'+
+  '<div class="subbox"><b>Colors (optional)</b><div class="mut small">Tick the colors this item comes in. Stock is then tracked separately for each color.</div>'+colorChips(it?it.colors:[],PAL,CAP?'e.g. White, Grey':'e.g. WH, BR')+'</div>'+
+  '<p class="mut small">'+(((edit&&mpc0===0)||(!edit&&isPiece))?'All quantities below are in pieces (whole numbers).':'All quantities below are in coils.')+'</p>'+
   '<div id="icw"></div>'+
   '<div class="g3"><label id="isw">Starting quantity (coils)<input id="is" type="number" min="0" step="any" inputmode="decimal" value="'+v(it&&it.start)+'" placeholder="0"></label><label>Low-stock limit<input id="il" type="number" min="0" step="any" inputmode="decimal" value="'+v(it&&it.low)+'" placeholder="0"></label><label>Target stock<input id="it" type="number" min="0" step="any" inputmode="decimal" value="'+v(it&&it.target)+'" placeholder="0"></label></div>'+
   '<p class="mut small">Low-stock limit: warn when stock falls to this level. Target stock: used to suggest how much to order.</p><p class="mut small" id="icn"></p>',
   edit?'Save changes':'Add item',ov=>{
     const name=$('#in').value.trim();if(!name)return 'Please type a name or size.';
     if(nameTaken(D.items.filter(x=>x.subId===subId),name,it&&it.id))return 'An item with this name already exists in this subcategory.';
-    const mpc=edit?mpc0:200;
-        const unit=edit?(mpc0===0?($('#iu').value.trim()||'piece'):it.unit):'coil';
+    const mpc=edit?mpc0:(isPiece?0:200);
+        const unit=edit?(mpc0===0?($('#iu').value.trim()||'piece'):it.unit):(isPiece?'piece':'coil');
     const f=mpc>0?mpc:1;
     const rd=id=>{const x=parseFloat($(id).value);return isNaN(x)?0:x};
-    const colors=readColors(ov).map(c=>exist(c)||c);
+    const colors=readColors(ov,CAP).map(c=>exist(c)||c);
     const typed={};ov.querySelectorAll('.cs').forEach(x=>{typed[x.dataset.c]=parseFloat(x.value)||0});
     const cs={};colors.forEach(c=>{cs[c]=r2((typed[c]||0)*f)});
     const s=colors.length?(edit?it.start:0):r2(rd('#is')*f),l=r2(rd('#il')*f),t=r2(rd('#it')*f);
@@ -1407,11 +1536,12 @@ function itemModal(subId,it){
         for(const c of colors){if(curK(vk(it.id,c))+(cs[c]-(it.cstart[c]||0))<0)return 'Changing the starting quantity of '+c+' would make its stock negative.'}
       }else if(curK(it.id)+(s-it.start)<0)return 'Changing the starting quantity would make stock negative.';
       Object.assign(it,{name,unit,start:s,low:l,target:t,colors,cstart:cs});
-    }else D.items.push({id:uid(),subId,name,unit,mpc,start:s,low:l,target:t,colors,cstart:cs});
+    }else D.items.push({id:uid(),subId,name,unit,mpc,start:s,low:l,target:t,colors,cstart:cs,prices:[]});
+    addToPalette(catI,colors,CAP);
     save();refresh();
   });
   const renderStarts=()=>{
-    const cols=readColors(ov).map(c=>exist(c)||c);
+    const cols=readColors(ov,CAP).map(c=>exist(c)||c);
     const keep={};ov.querySelectorAll('.cs').forEach(x=>{keep[x.dataset.c]=x.value});
     $('#isw').hidden=cols.length>0;
     $('#icw').innerHTML=cols.length?'<div class="g3">'+cols.map(c=>'<label>'+sw(c)+'Starting '+esc(c)+'<input class="cs" data-c="'+esc(c)+'" type="number" min="0" step="any" inputmode="decimal" value="'+esc(keep[c]!==undefined?keep[c]:(exist(c)?v(it.cstart[exist(c)]):''))+'" placeholder="0"></label>').join('')+'</div>':'';
